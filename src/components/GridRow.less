@@ -1,0 +1,29 @@
+.grid-row {
+  position: relative;
+
+  // &.ready .grid-element {
+  //   opacity: 1;
+  // }
+
+  .grid-element {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    overflow: hidden;
+    // opacity: 0;
+
+    .cell {
+      transition: opacity 100ms linear;
+    }
+
+    // &.pressed .cell {
+    //   background-color: red;
+    // }
+
+    &.hover .cell {
+      opacity: 0.5;
+    }
+
+    transition: transform 200ms linear;
+  }
+}
