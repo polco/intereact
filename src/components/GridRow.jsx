@@ -255,6 +255,13 @@ class GridRow extends PluggableComponent {
     this.boundingBox = this.DOMNode.getBoundingClientRect();
     this._onTapMoveBound = this.onTapMove.bind(this);
     document.body.addEventListener(tapEvents.move, this._onTapMoveBound);
+    this._onTapEndBound = this.onTapEnd.bind(this);
+    document.body.addEventListener(tapEvents.end, this._onTapEndBound);
+  }
+
+  onTapEnd() {
+    document.body.removeEventListener(tapEvents.move, this._onTapMoveBound);
+    this._onTapMoveBound = null;
   }
 
   onHoverEnd() {

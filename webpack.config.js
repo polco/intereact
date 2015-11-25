@@ -31,6 +31,11 @@ module.exports = {
             }
         ]
     },
+    plugins: [
+      new webpack.ProvidePlugin({
+        'fetch': 'imports?this=>global!exports?global.fetch!whatwg-fetch'
+      })
+    ]
     resolve: {
         modulesDirectories: ['node_modules', './src'],
         extensions: ['', '.js', '.jsx', '.less']
