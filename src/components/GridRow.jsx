@@ -78,7 +78,7 @@ class GridElement extends PluggableComponent {
   updateComponentDisplay(props) {
     this.transform.setOpacity(props.hasOwnProperty('opacity') ? props.opacity : 1);
     this.transform.setPosition(props.x, 0);
-    this.transform.setDimensions(props.width, props.rowHeight);
+    this.transform.setDimensions(props.width, props.height);
   }
 
   componentDidMount() {
@@ -154,52 +154,6 @@ class GridRow extends PluggableComponent {
       this.setState({ cellsX });
     }
   }
-
-  // willDrop() {
-  //   document.body.removeEventListener(tapEvents.move, this._onTapMoveBound);
-  //   this._onTapMoveBound = null;
-  //   let cellsX, transform;
-  //   let rowDisplay = this.props.rowDisplay;
-
-  //   if (this.props.index === this.dragRowIndex) {
-  //     cellsX = rowDisplay.cellsX.concat();
-  //     if (this.isInFirstHalf) {
-  //       for (let i = 0, len = this.dragCellIndex; i < len; i += 1) {
-  //         cellsX[i] += this.dragCellWidth;
-  //       }
-  //       cellsX[this.dragCellIndex] = 0;
-  //     } else if (this.currentDragOverCell + 1 < this.dragCellIndex) {
-  //       for (let i = this.currentDragOverCell + 1, len = this.dragCellIndex; i < len; i += 1) {
-  //         cellsX[i] += this.dragCellWidth;
-  //       }
-  //       cellsX[this.dragCellIndex] = cellsX[this.currentDragOverCell + 1] - this.dragCellWidth;
-  //     } else if (this.currentDragOverCell > this.dragCellIndex) {
-  //       for (let i = this.dragCellIndex + 1, len = this.currentDragOverCell + 1; i < len; i += 1) {
-  //         cellsX[i] -= this.dragCellWidth;
-  //       }
-  //       cellsX[this.dragCellIndex] = cellsX[this.currentDragOverCell] + rowDisplay.cellsWidth[this.currentDragOverCell];
-  //     }
-  //     transform = { x: cellsX[this.dragCellIndex], y: this.boundingBox.top, scale: 1, time: 200 };
-  //     this.setState({ cellsX });
-  //   } else {
-  //     let cells = this.props.cells.concat();
-  //     let newIndex;
-  //     if (this.isInFirstHalf) {
-  //       newIndex = 0;
-  //     } else {
-  //       newIndex = this.currentDragOverCell + 1;
-  //     }
-
-  //     cells.splice(newIndex, 0, this.dragCell);
-  //     let newRowDisplay = this.props.computeRowDisplay(cells);
-  //     transform = { x: newRowDisplay.cellsX[newIndex], scale: newRowDisplay.cellsWidth[newIndex] / this.dragCellWidth, time: 200 };
-  //     // this.props.rowHeightUpdated(this.props.index, oldHeight, this.rowHeight);
-  //     this.resetCells(newRowDisplay);
-  //   }
-
-  //   transform.y = this.boundingBox.top;
-  //   return transform;
-  // }
 
   willDrop() {
     document.body.removeEventListener(tapEvents.move, this._onTapMoveBound);
@@ -312,7 +266,7 @@ class GridRow extends PluggableComponent {
               opacity={this.state.cellsOpacity[cell.id]}
               x={this.state.cellsX[index]}
               width={rowDisplay.cellsWidth[index]}
-              rowHeight={rowDisplay.height}
+              height={rowDisplay.height}
               rowIndex={this.props.index}
               key={cell.id}
               index={index}

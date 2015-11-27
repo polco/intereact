@@ -29,8 +29,12 @@ class Main extends React.Component {
   }
 
   changeCellRow(row1Index, cell1Index, row2Index, cell2Index) {
-    let cell = this.state.rows[row1Index].cells.splice(cell1Index, 1)[0];
+    let initialRow = this.state.rows[row1Index];
+    let cell = initialRow.cells.splice(cell1Index, 1)[0];
     this.state.rows[row2Index].cells.splice(cell2Index, 0, cell);
+    if (initialRow.cells.length === 0) {
+      this.state.rows.splice(row1Index, 1);
+    }
     this.setState({ rows: this.state.rows });
   }
 
@@ -44,7 +48,6 @@ class Main extends React.Component {
   }
 
   render() {
-    this.gridRows = [];
     return (
       <Grid rows={this.rows}
         newRowBefore={this.newRowBefore.bind(this)}
