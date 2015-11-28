@@ -1,99 +1,11 @@
 import React from 'react';
 import PluggableComponent from 'components/PluggableComponent';
 import { tapEvents, getTap } from 'components/tapHelper';
-import TapPlugin from 'components/TapPlugin';
-import DragPlugin from 'components/DragPlugin';
 import DropPlugin from 'components/DropPlugin';
 import TransformPlugin from 'components/TransformPlugin';
+import GridElement from 'components/GridElement';
 import './GridRow.less';
 
-class GridElement extends PluggableComponent {
-  constructor(props) {
-    super(props);
-
-    this.addPlugin(new TapPlugin());
-    this.addPlugin(new DragPlugin(this.props.children));
-    this.transform = this.addPlugin(new TransformPlugin());
-
-    this.opened = false;
-  }
-
-  onLongTap() {
-    if (!this.opened) {
-      this.open();
-    }
-  }
-  onTap() {
-    if (this.opened) {
-      this.close();
-    } else {
-      this.DOMNode.classList.toggle('selected');
-    }
-  }
-
-  open() {
-    if (this.opened) { return; }
-    this.transform.style.zIndex = 1;
-    this.transform.scaleTo(1.5, 100);
-    this.opened = true;
-  }
-
-  close() {
-    if (!this.opened) { return; }
-    this.transform.scaleTo(1, 100).then(() => {
-      this.transform.style.zIndex = 0;
-    });
-    this.opened = false;
-  }
-
-  onDragStart() {
-    this.close();
-    // this.DOMNode.style.opacity = 0.5;
-  }
-
-  onDragEnd() {
-    // this.DOMNode.style.opacity = 1;
-  }
-
-  onTapStart() {
-    this.DOMNode.classList.add('pressed');
-  }
-
-  onTapEnd() {
-    this.DOMNode.classList.remove('pressed');
-  }
-
-  onDragEnter(dragPlugin) {
-    this.DOMNode.classList.add('hover');
-  }
-
-  onDragLeave() {
-    this.DOMNode.classList.remove('hover');
-  }
-
-  onHoverEnd() {
-    this.DOMNode.classList.remove('hover');
-  }
-
-  updateComponentDisplay(props) {
-    this.transform.setOpacity(props.hasOwnProperty('opacity') ? props.opacity : 1);
-    this.transform.setPosition(props.x, 0);
-    this.transform.setDimensions(props.width, props.height);
-  }
-
-  componentDidMount() {
-    super.componentDidMount();
-    this.updateComponentDisplay(this.props);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    this.updateComponentDisplay(nextProps);
-  }
-
-  render() {
-    return (<div className='grid-element'>{this.props.children}</div>);
-  }
-}
 
 const NEW_ROW_GAP = 20;
 const CELL_SHIFT_FACTOR = 0.1;
@@ -121,13 +33,10 @@ class GridRow extends PluggableComponent {
     let relativeY = tap.y - this.boundingBox.top + (rowDisplay.y - rowDisplay.initialY);
 
     if (relativeY < NEW_ROW_GAP) {
-      this.wantToCreateRow = true;
       this.props.offerNewRowBefore(this.props.index);
     } else if (relativeY > this.props.rowDisplay.height - NEW_ROW_GAP) {
-      this.wantToCreateRow = true;
       this.props.offerNewRowAfter(this.props.index);
     } else {
-      this.wantToCreateRow = false;
       this.props.resetOffering();
       let relativeX = tap.x - this.boundingBox.left;
       let currentDragOverCell = rowDisplay.cellsX.length - 1;
@@ -145,8 +54,8 @@ class GridRow extends PluggableComponent {
 
       this.isInFirstHalf = relativeX < rowDisplay.firstCellHalfWidth;
 
-      if (this.dragRowIndex === this.props.index) { // dragging on same row
-        if (currentDragOverCell === this.dragCellIndex || (currentDragOverCell === this.dragCellIndex - 1 && !this.isInFirstHalf)) {
+      if (this.dragComponentProps.rowId === this.props.id && this.dragComponentProps.gridId === this.props.gridId) { // dragging on same row
+        if (currentDragOverCell === this.dragComponentProps.index || (currentDragOverCell === this.dragComponentProps.index - 1 && !this.isInFirstHalf)) {
           return this.resetCellsPosition();
         }
       }
@@ -163,29 +72,33 @@ class GridRow extends PluggableComponent {
     }
   }
 
-  willDrop() {
+  removeListener() {
     document.body.removeEventListener(tapEvents.move, this._onTapMoveBound);
     this._onTapMoveBound = null;
-    let transform;
-    let cellsOpacity = {};
+    document.body.removeEventListener(tapEvents.end, this._onTapEndBound);
+    this._onTapEndBound = null;
+  }
 
-    if (this.wantToCreateRow) {
-      this.props.createRowWith(this.dragRowIndex, this.dragCellIndex);
-      transform = { x: this.props.rowDisplay.cellsX[0], y: this.boundingBox.top, scale: 1, time: 200 };
-    } else if (this.props.index === this.dragRowIndex) {
+  willDrop() {
+    this.removeListener();
+    let transform;
+    let cellsOpacity = this.state.cellsOpacity;
+
+    let dragWithinTheGrid = this.props.gridId === this.dragComponentProps.gridId;
+    if (this.props.id === this.dragComponentProps.rowId && dragWithinTheGrid) {
       let newIndex;
       if (this.isInFirstHalf) {
         newIndex = 0;
-      } else if (this.currentDragOverCell < this.dragCellIndex) {
+      } else if (this.currentDragOverCell < this.dragComponentProps.index) {
         newIndex = this.currentDragOverCell + 1;
       } else {
         newIndex = this.currentDragOverCell;
       }
-      if (this.dragCellIndex !== newIndex) {
-        this.props.cellsShift(this.dragRowIndex, this.dragCellIndex, newIndex);
+      cellsOpacity[this.dragComponentProps.cell.id] = 0.5;
+      if (this.dragComponentProps.index !== newIndex) {
+        this.props.cellsShift(this.dragComponentProps.rowIndex, this.dragComponentProps.index, newIndex);
       }
-      transform = { x: this.props.rowDisplay.cellsX[newIndex], y: this.boundingBox.top, scale: 1, time: 200 };
-      cellsOpacity[this.dragCellId] = 0.5;
+      transform = { x: this.boundingBox.left + this.props.rowDisplay.cellsX[newIndex], y: this.boundingBox.top, scale: 1, time: 200 };
     } else {
       let newIndex;
       if (this.isInFirstHalf) {
@@ -194,11 +107,12 @@ class GridRow extends PluggableComponent {
         newIndex = this.currentDragOverCell + 1;
       }
       let previousY = this.transform.y;
-      this.props.changeCellRow(this.dragRowIndex, this.dragCellIndex, this.props.index, newIndex);
+
+      cellsOpacity[this.dragComponentProps.cell.id] = 0;
+      this.props.changeCellRow(this.dragComponentProps.gridId, this.dragComponentProps.rowIndex, this.dragComponentProps.index, this.props.gridId, this.props.index, newIndex);
       let rowDisplay = this.props.rowDisplay;
       let y = this.boundingBox.top + (this.transform.y - previousY);
-      transform = { y: y, x: rowDisplay.cellsX[newIndex], scale: rowDisplay.cellsWidth[newIndex] / this.dragCellWidth, time: 200 };
-      cellsOpacity[this.dragCellId] = 0;
+      transform = { y: y, x: this.boundingBox.left + rowDisplay.cellsX[newIndex], scale: rowDisplay.cellsWidth[newIndex] / this.dragComponentProps.width, time: 200 };
     }
 
     this.setState({ cellsOpacity });
@@ -207,19 +121,18 @@ class GridRow extends PluggableComponent {
   }
 
   didDrop() {
-    let cellsOpacity = {};
-    cellsOpacity[this.dragCellId] = 1;
+    let cellsOpacity = this.state.cellsOpacity;
+    // for (let cellId in this.state.cellsOpacity) {
+    //   cellsOpacity[cellId] = 1;
+    // }
+    cellsOpacity[this.dragComponentProps.cell.id] = 1;
     this.setState({ cellsOpacity });
-    this.props.resetOffering();
+    // this.props.resetOffering();
   }
 
   onDragEnter(dragPlugin) {
     this.currentDragOverCell = -1;
-    this.dragCellWidth = dragPlugin.reactComponent.props.width;
-    this.dragCellIndex = dragPlugin.reactComponent.props.index;
-    this.dragCellId = dragPlugin.reactComponent.props.cell.id;
-    this.dragRowIndex = dragPlugin.reactComponent.props.rowIndex;
-    this.dragCell = dragPlugin.reactComponent.props.cell;
+    this.dragComponentProps = dragPlugin.reactComponent.props;
     this.boundingBox = this.DOMNode.getBoundingClientRect();
     this._onTapMoveBound = this.onTapMove.bind(this);
     document.body.addEventListener(tapEvents.move, this._onTapMoveBound);
@@ -228,19 +141,16 @@ class GridRow extends PluggableComponent {
   }
 
   onTapEnd() {
-    document.body.removeEventListener(tapEvents.move, this._onTapMoveBound);
-    this._onTapMoveBound = null;
+    this.removeListener();
   }
 
   onHoverEnd() {
-    document.body.removeEventListener(tapEvents.move, this._onTapMoveBound);
-    this._onTapMoveBound = null;
+    this.removeListener();
   }
 
   onDragLeave() {
     this.resetCellsPosition();
-    document.body.removeEventListener(tapEvents.move, this._onTapMoveBound);
-    this._onTapMoveBound = null;
+    this.removeListener();
   }
 
   updateCellsIndex(cells) {
@@ -273,26 +183,26 @@ class GridRow extends PluggableComponent {
     let rowDisplay = this.props.rowDisplay;
     return (
       <div className='grid-row'>
-      <div className='new-row before'></div>
-      {
-        this.props.cells.map((cell, cellIndex) => {
-          let index = this.cellsIndex[cell.id];
-          return (
-            <GridElement
-              opacity={this.state.cellsOpacity[cell.id]}
-              x={this.state.cellsX[index]}
-              width={rowDisplay.cellsWidth[index]}
-              height={rowDisplay.height}
-              rowIndex={this.props.index}
-              key={cell.id}
-              index={index}
-              cell={cell} >
-              <div className='cell' key={'cell' + cell.id} style={ {width: '100%', height: '100%'} }>{cell.content}</div>
-            </GridElement>
-          );
-        })
-      }
-      <div className='new-row after'></div>
+        {
+          this.props.cells.map((cell, cellIndex) => {
+            let index = this.cellsIndex[cell.id];
+            return (
+              <GridElement
+                gridId={this.props.gridId}
+                opacity={this.state.cellsOpacity[cell.id]}
+                x={this.state.cellsX[index]}
+                width={rowDisplay.cellsWidth[index]}
+                height={rowDisplay.height}
+                rowId={this.props.id}
+                rowIndex={this.props.index}
+                key={cell.id}
+                index={index}
+                cell={cell} >
+                <div className='cell' key={'cell' + cell.id} style={ {width: '100%', height: '100%'} }>{cell.content}</div>
+              </GridElement>
+            );
+          })
+        }
       </div>
     );
   }

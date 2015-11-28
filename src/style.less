@@ -10,6 +10,20 @@ body {
   overflow: hidden;
 }
 
+.main {
+  display: flex;
+  height: 100%;
+  justify-content: space-around;
+  align-items: center;
+
+  .grid1, .grid2 {
+    flex: 1 0 0;
+    height: 90%;
+    max-width: 45%;
+    border: 1px solid black;
+  }
+}
+
 .intereact {
   position: absolute;
   top: 0;
@@ -26,7 +40,7 @@ body {
 .grid-system {
   // position: absolute;
   // overflow: hidden;
-  width: 90%;
+  width: 100%;
 
   display: flex;
   flex-direction: column;

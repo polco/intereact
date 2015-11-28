@@ -3,6 +3,7 @@
 
   .grid-element {
     position: absolute;
+    z-index: 1;
     top: 0;
     height: 100%;
     overflow: hidden;
@@ -20,16 +21,5 @@
     }
 
     transition: transform 200ms linear;
-  }
-
-  .new-row {
-    position: absolute;
-    left: 0;
-    height: 40px;
-    width: 100%;
-    border: 1px solid block;
-
-    &.before { top: -20px; }
-    &.after { bottom: -20px; }
   }
 }

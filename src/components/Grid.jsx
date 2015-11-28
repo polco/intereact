@@ -1,19 +1,25 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import GridRow from 'components/GridRow';
-import Scroller from 'components/Scroller';;
+import Scroller from 'components/Scroller';
+import PluggableComponent from 'components/PluggableComponent';
+import DropPlugin from 'components/DropPlugin';
+import HoverPlugin from 'components/HoverPlugin';
 import './Grid.less';
 
 const NEW_ROW_TIMEOUT = 400;
 const MAX_CELL_HEIGHT = 400;
 const ROW_SHIFT_FACTOR = 0.1;
 
-export class Grid extends React.Component {
+export class Grid extends PluggableComponent {
   constructor(props) {
     super(props);
-    this.state = { rowsDisplay: [], newRowIndex: null, scrollerHeight: 0 };
+    this.state = { rowsDisplay: {}, newRowIndex: null, scrollerHeight: 0 };
     this.newRowTimer = null;
     this.newRowIndex = null;
+
+    this.addPlugin(new DropPlugin());
+    this.addPlugin(new HoverPlugin());
   }
 
   offerNewRow(rowIndex) {
@@ -36,6 +42,15 @@ export class Grid extends React.Component {
     this.offerNewRow(rowIndex - 1);
   }
 
+  willDrop(dragPlugin) {
+    let dropRowIndex = this.newRowIndex !== null ? this.newRowIndex + 1 : this.props.rows.length;
+    let dragCellProps = dragPlugin.reactComponent.props;
+    let newRow = this.props.createRowWith(this.props.id, dropRowIndex, dragCellProps.gridId, dragCellProps.rowIndex, dragCellProps.index);
+    let rowDisplay = this.state.rowsDisplay[newRow.id];
+    let boundingBox = this.DOMNode.getBoundingClientRect()
+    return { x: boundingBox.left + rowDisplay.cellsX[0], y: boundingBox.top + rowDisplay.y, scale: rowDisplay.cellsWidth[0] / dragCellProps.width, time: 200 };
+  }
+
   resetOffering() {
     if (this.newRowIndex === null) {
       return;
@@ -47,6 +62,9 @@ export class Grid extends React.Component {
   }
 
   computeRowDisplay(cells) {
+    if (!cells || !cells[0]) {
+      debugger
+    }
     let minHeight = cells[0].height;
 
     cells.forEach(function (cell, index) {
@@ -95,13 +113,11 @@ export class Grid extends React.Component {
   }
 
   computeRowsDisplay(rows) {
-    let rowsDisplay = [];
-    rows.forEach((row) => {
-      rowsDisplay.push(this.computeRowDisplay(row.cells));
-    });
-
+    let rowsDisplay = {};
     let scrollerHeight = 0;
-    rowsDisplay.forEach((rowDisplay) => {
+    rows.forEach((row) => {
+      let rowDisplay = this.computeRowDisplay(row.cells);
+      rowsDisplay[row.id] = rowDisplay;
       rowDisplay.y = rowDisplay.initialY = scrollerHeight;
       scrollerHeight += rowDisplay.height;
     });
@@ -109,13 +125,17 @@ export class Grid extends React.Component {
     this.setState({ rowsDisplay, scrollerHeight });
   }
 
+  onTapLeave() {
+    this.resetOffering();
+  }
+
   componentWillReceiveProps(nextProps) {
-    this.newRowIndex = null;
-    this.setState({ newRowIndex: null });
     this.computeRowsDisplay(nextProps.rows);
+    this.resetOffering();
   }
 
   componentDidMount() {
+    super.componentDidMount();
     this.width = this.gridSystem.clientWidth;
     this.computeRowsDisplay(this.props.rows);
   }
@@ -126,7 +146,7 @@ export class Grid extends React.Component {
       <Scroller fingerCount={1} contentHeight={this.state.scrollerHeight}>
         <div className='grid-system' ref={(ref) => { this.gridSystem = ref; }}>{
           this.props.rows.map((row, rowIndex) => {
-            let rowDisplay = this.state.rowsDisplay[rowIndex] || { cellsX: [], cellsWidth: [], height: 0 }
+            let rowDisplay = this.state.rowsDisplay[row.id] || { cellsX: [], cellsWidth: [], height: 0 }
             if (newRowIndex === rowIndex) {
               rowDisplay.y = rowDisplay.initialY - Math.floor(rowDisplay.height * ROW_SHIFT_FACTOR);
             } else if (newRowIndex === rowIndex - 1) {
@@ -136,18 +156,17 @@ export class Grid extends React.Component {
             }
             return (
               <GridRow
+                gridId={this.props.id}
                 rowDisplay={rowDisplay}
-                key={rowIndex}
+                key={row.id}
+                id={row.id}
                 index={rowIndex}
                 offeringRow
                 computeRowDisplay={this.computeRowDisplay.bind(this)}
-                createRowWith={(fromRowIndex, fromCellIndex) => this.props.createRowWith(this.newRowIndex + 1, fromRowIndex, fromCellIndex)}
                 changeCellRow={this.props.changeCellRow.bind(this)}
                 resetOffering={this.resetOffering.bind(this)}
                 offerNewRowBefore={this.offerNewRowBefore.bind(this)}
-                newRowBefore={this.props.newRowBefore.bind(this)}
                 offerNewRowAfter={this.offerNewRowAfter.bind(this)}
-                newRowAfter={this.props.newRowAfter.bind(this)}
                 cellsShift={this.props.cellsShift.bind(this)}
                 cells={row.cells} />
             );
