@@ -1,16 +1,11 @@
 .grid-row {
   position: relative;
 
-  // &.ready .grid-element {
-  //   opacity: 1;
-  // }
-
   .grid-element {
     position: absolute;
     top: 0;
     height: 100%;
     overflow: hidden;
-    // opacity: 0;
 
     .cell {
       transition: opacity 100ms linear;
@@ -25,5 +20,16 @@
     }
 
     transition: transform 200ms linear;
+  }
+
+  .new-row {
+    position: absolute;
+    left: 0;
+    height: 40px;
+    width: 100%;
+    border: 1px solid block;
+
+    &.before { top: -20px; }
+    &.after { bottom: -20px; }
   }
 }

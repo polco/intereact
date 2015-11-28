@@ -95,7 +95,7 @@ class GridElement extends PluggableComponent {
   }
 }
 
-const NEW_ROW_GAP = 10;
+const NEW_ROW_GAP = 20;
 
 class GridRow extends PluggableComponent {
   constructor(props) {
@@ -115,14 +115,19 @@ class GridRow extends PluggableComponent {
 
   onTapMove(e) {
     let tap = getTap(e);
-    let relativeY = tap.y - this.boundingBox.top;
+    let rowDisplay = this.props.rowDisplay;
+    let relativeY = tap.y - this.boundingBox.top + (rowDisplay.y - rowDisplay.initialY);
+
     if (relativeY < NEW_ROW_GAP) {
+      this.wantToCreateRow = true;
       this.props.offerNewRowBefore(this.props.index);
     } else if (relativeY > this.props.rowDisplay.height - NEW_ROW_GAP) {
+      this.wantToCreateRow = true;
       this.props.offerNewRowAfter(this.props.index);
     } else {
+      this.wantToCreateRow = false;
+      this.props.resetOffering();
       let relativeX = tap.x - this.boundingBox.left;
-      let rowDisplay = this.props.rowDisplay;
       let currentDragOverCell = rowDisplay.cellsX.length - 1;
       for (let i = 0, len = rowDisplay.cellsX.length - 1; i < len; i += 1) {
         if (relativeX < rowDisplay.cellsX[i + 1] + rowDisplay.cellsWidth[i + 1] / 2) {
@@ -161,7 +166,10 @@ class GridRow extends PluggableComponent {
     let transform;
     let cellsOpacity = {};
 
-    if (this.props.index === this.dragRowIndex) {
+    if (this.wantToCreateRow) {
+      this.props.createRowWith(this.dragRowIndex, this.dragCellIndex);
+      transform = { x: this.props.rowDisplay.cellsX[0], y: this.boundingBox.top, scale: 1, time: 200 };
+    } else if (this.props.index === this.dragRowIndex) {
       let newIndex;
       if (this.isInFirstHalf) {
         newIndex = 0;
@@ -197,6 +205,7 @@ class GridRow extends PluggableComponent {
     let cellsOpacity = {};
     cellsOpacity[this.dragCellId] = 1;
     this.setState({ cellsOpacity });
+    this.props.resetOffering();
   }
 
   onDragEnter(dragPlugin) {
@@ -258,7 +267,9 @@ class GridRow extends PluggableComponent {
   render() {
     let rowDisplay = this.props.rowDisplay;
     return (
-      <div className='grid-row'>{
+      <div className='grid-row'>
+      <div className='new-row before'></div>
+      {
         this.props.cells.map((cell, cellIndex) => {
           let index = this.cellsIndex[cell.id];
           return (
@@ -275,7 +286,9 @@ class GridRow extends PluggableComponent {
             </GridElement>
           );
         })
-      }</div>
+      }
+      <div className='new-row after'></div>
+      </div>
     );
   }
 }

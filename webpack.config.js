@@ -28,14 +28,13 @@ module.exports = {
             {
                 test: /\.html$/,
                 loader: "file?name=[name].[ext]"
+            },
+            {
+                test: /\.png$/,
+                loader: "url-loader?limit=10000&minetype=image/png"
             }
         ]
     },
-    plugins: [
-      new webpack.ProvidePlugin({
-        'fetch': 'imports?this=>global!exports?global.fetch!whatwg-fetch'
-      })
-    ]
     resolve: {
         modulesDirectories: ['node_modules', './src'],
         extensions: ['', '.js', '.jsx', '.less']

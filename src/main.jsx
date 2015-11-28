@@ -21,6 +21,17 @@ class Main extends React.Component {
     this.state = { rows: rows };
   }
 
+  createRowWith(newRowIndex, rowIndex, cellIndex) {
+    let initialRow = this.state.rows[rowIndex];
+    let cell = initialRow.cells.splice(cellIndex, 1)[0];
+    this.state.rows.splice(newRowIndex, 0, { cells: [cell] });
+    if (initialRow.cells.length === 0) {
+      let index = this.state.rows.indexOf(initialRow);
+      this.state.rows.splice(index, 1);
+    }
+    this.setState({ rows: this.state.rows });
+  }
+
   cellsShift(rowIndex, cell1Index, cell2Index) {
     let row = this.state.rows[rowIndex];
     let cell1 = row.cells.splice(cell1Index, 1)[0];
@@ -50,6 +61,7 @@ class Main extends React.Component {
   render() {
     return (
       <Grid rows={this.rows}
+        createRowWith={this.createRowWith.bind(this)}
         newRowBefore={this.newRowBefore.bind(this)}
         newRowAfter={this.newRowAfter.bind(this)}
         cellsShift={this.cellsShift.bind(this)}
