@@ -22,6 +22,7 @@ class Main extends React.Component {
   }
 
   createRowWith(newRowIndex, rowIndex, cellIndex) {
+    console.log('[createRowWith]', newRowIndex, rowIndex, cellIndex);
     let initialRow = this.state.rows[rowIndex];
     let cell = initialRow.cells.splice(cellIndex, 1)[0];
     this.state.rows.splice(newRowIndex, 0, { cells: [cell] });
@@ -33,6 +34,7 @@ class Main extends React.Component {
   }
 
   cellsShift(rowIndex, cell1Index, cell2Index) {
+    console.log('[cellsShift]', rowIndex, cell1Index, cell2Index);
     let row = this.state.rows[rowIndex];
     let cell1 = row.cells.splice(cell1Index, 1)[0];
     row.cells.splice(cell2Index, 0, cell1);
@@ -40,6 +42,7 @@ class Main extends React.Component {
   }
 
   changeCellRow(row1Index, cell1Index, row2Index, cell2Index) {
+    console.log('[changeCellRow]', row1Index, cell1Index, row2Index, cell2Index);
     let initialRow = this.state.rows[row1Index];
     let cell = initialRow.cells.splice(cell1Index, 1)[0];
     this.state.rows[row2Index].cells.splice(cell2Index, 0, cell);

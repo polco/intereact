@@ -5,11 +5,13 @@ import Scroller from 'components/Scroller';;
 import './Grid.less';
 
 const NEW_ROW_TIMEOUT = 400;
+const MAX_CELL_HEIGHT = 400;
+const ROW_SHIFT_FACTOR = 0.1;
 
 export class Grid extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { rowsDisplay: [], newRowIndex: null };
+    this.state = { rowsDisplay: [], newRowIndex: null, scrollerHeight: 0 };
     this.newRowTimer = null;
     this.newRowIndex = null;
   }
@@ -61,13 +63,17 @@ export class Grid extends React.Component {
 
     let rowWidth = this.width;
     let height = Math.floor(rowWidth * minHeight / totalWidth);
+    let reachedMaxHeight = height > MAX_CELL_HEIGHT;
+    if (reachedMaxHeight) {
+      height = MAX_CELL_HEIGHT;
+    }
 
     let cellsWidth = [];
     let cellsX = [];
     let currentX = 0;
     cells.forEach(function (cell, index) {
       let width;
-      if (index === cells.length - 1) {
+      if (index === cells.length - 1 && !reachedMaxHeight) {
         width = rowWidth - currentX;
       } else {
         width = Math.round(height * cell.width / cell.height);
@@ -94,13 +100,13 @@ export class Grid extends React.Component {
       rowsDisplay.push(this.computeRowDisplay(row.cells));
     });
 
-    let currentY = 0;
+    let scrollerHeight = 0;
     rowsDisplay.forEach((rowDisplay) => {
-      rowDisplay.y = rowDisplay.initialY = currentY;
-      currentY += rowDisplay.height;
+      rowDisplay.y = rowDisplay.initialY = scrollerHeight;
+      scrollerHeight += rowDisplay.height;
     });
 
-    this.setState({ rowsDisplay });
+    this.setState({ rowsDisplay, scrollerHeight });
   }
 
   componentWillReceiveProps(nextProps) {
@@ -117,14 +123,14 @@ export class Grid extends React.Component {
   render() {
     let newRowIndex = this.state.newRowIndex;
     return (
-      <Scroller fingerCount={1}>
+      <Scroller fingerCount={1} contentHeight={this.state.scrollerHeight}>
         <div className='grid-system' ref={(ref) => { this.gridSystem = ref; }}>{
           this.props.rows.map((row, rowIndex) => {
             let rowDisplay = this.state.rowsDisplay[rowIndex] || { cellsX: [], cellsWidth: [], height: 0 }
             if (newRowIndex === rowIndex) {
-              rowDisplay.y = rowDisplay.initialY - 10;
+              rowDisplay.y = rowDisplay.initialY - Math.floor(rowDisplay.height * ROW_SHIFT_FACTOR);
             } else if (newRowIndex === rowIndex - 1) {
-              rowDisplay.y = rowDisplay.initialY + 10;
+              rowDisplay.y = rowDisplay.initialY + Math.floor(rowDisplay.height * ROW_SHIFT_FACTOR);
             } else {
               rowDisplay.y = rowDisplay.initialY;
             }

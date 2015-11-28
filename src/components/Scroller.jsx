@@ -155,8 +155,13 @@ class Scroller extends React.Component {
     this.refresh();
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.contentHeight) {
+      this.scrollContent.style.height = nextProps.contentHeight + 'px';
+    }
+  }
+
   componentDidMount() {
-    window.scroller = this;
     this.contentStyle = this.scrollContent.style;
     this._tapStartBound = this._tapStart.bind(this);
     this.scroller.addEventListener(tapEvents.start, this._tapStartBound);

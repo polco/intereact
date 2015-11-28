@@ -10,7 +10,7 @@ class TransformPlugin  {
     this.scale = 1;
     this.width = 0;
     this.height = 0;
-    this.speed = 1;
+    this.speed = 1.7;
   }
 
   setDimensions(width, height) {

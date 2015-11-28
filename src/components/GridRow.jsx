@@ -96,6 +96,7 @@ class GridElement extends PluggableComponent {
 }
 
 const NEW_ROW_GAP = 20;
+const CELL_SHIFT_FACTOR = 0.1;
 
 class GridRow extends PluggableComponent {
   constructor(props) {
@@ -107,6 +108,7 @@ class GridRow extends PluggableComponent {
     this.state = { cellsX: [], cellsOpacity: {} };
     this.props = { rowDisplay: { cellsX: [], cellsWidth: [], height: 0 } }
     this.cellsIndex = {};
+    this.currentDragOverCell = -1;
   }
 
   resetCellsPosition(cellsX) {
@@ -151,10 +153,11 @@ class GridRow extends PluggableComponent {
 
       let cellsX = rowDisplay.cellsX.concat();
       if (this.isInFirstHalf) {
-        cellsX[0] += 40;
+        cellsX[0] += Math.floor(rowDisplay.cellsWidth[0] * CELL_SHIFT_FACTOR);
       } else {
-        cellsX[currentDragOverCell] -= 40;
-        cellsX[currentDragOverCell + 1] += 40;
+        let shift = Math.floor(rowDisplay.cellsWidth[currentDragOverCell] * CELL_SHIFT_FACTOR);
+        cellsX[currentDragOverCell] -= shift;
+        cellsX[currentDragOverCell + 1] += shift;
       }
       this.setState({ cellsX });
     }
@@ -178,7 +181,9 @@ class GridRow extends PluggableComponent {
       } else {
         newIndex = this.currentDragOverCell;
       }
-      this.props.cellsShift(this.dragRowIndex, this.dragCellIndex, newIndex);
+      if (this.dragCellIndex !== newIndex) {
+        this.props.cellsShift(this.dragRowIndex, this.dragCellIndex, newIndex);
+      }
       transform = { x: this.props.rowDisplay.cellsX[newIndex], y: this.boundingBox.top, scale: 1, time: 200 };
       cellsOpacity[this.dragCellId] = 0.5;
     } else {
