@@ -8,7 +8,7 @@ import HoverPlugin from 'components/HoverPlugin';
 import './Grid.less';
 
 const NEW_ROW_TIMEOUT = 400;
-const MAX_CELL_HEIGHT = 400;
+const MAX_CELL_HEIGHT = 300;
 const ROW_SHIFT_FACTOR = 0.1;
 
 export class Grid extends PluggableComponent {
@@ -62,9 +62,6 @@ export class Grid extends PluggableComponent {
   }
 
   computeRowDisplay(cells) {
-    if (!cells || !cells[0]) {
-      debugger
-    }
     let minHeight = cells[0].height;
 
     cells.forEach(function (cell, index) {

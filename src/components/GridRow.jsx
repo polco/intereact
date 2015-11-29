@@ -4,7 +4,6 @@ import { tapEvents, getTap } from 'components/tapHelper';
 import DropPlugin from 'components/DropPlugin';
 import TransformPlugin from 'components/TransformPlugin';
 import GridElement from 'components/GridElement';
-import dragManager from 'components/dragManager';
 import './GridRow.less';
 
 
@@ -80,24 +79,25 @@ class GridRow extends PluggableComponent {
     this._onTapEndBound = null;
   }
 
-  willDrop() {
+  willDrop(dragPlugin) {
     this.removeListener();
     let transform;
+    let dragComponentProps = dragPlugin.reactComponent.props;
     let cellsOpacity = this.state.cellsOpacity;
 
-    let dragWithinTheGrid = this.props.gridId === this.dragComponentProps.gridId;
-    if (this.props.id === this.dragComponentProps.rowId && dragWithinTheGrid) {
+    let dragWithinTheGrid = this.props.gridId === dragComponentProps.gridId;
+    if (this.props.id === dragComponentProps.rowId && dragWithinTheGrid) {
       let newIndex;
       if (this.isInFirstHalf) {
         newIndex = 0;
-      } else if (this.currentDragOverCell < this.dragComponentProps.index) {
+      } else if (this.currentDragOverCell < dragComponentProps.index) {
         newIndex = this.currentDragOverCell + 1;
       } else {
         newIndex = this.currentDragOverCell;
       }
-      cellsOpacity[this.dragComponentProps.cell.id] = 0.5;
-      if (this.dragComponentProps.index !== newIndex) {
-        this.props.cellsShift(this.dragComponentProps.rowIndex, this.dragComponentProps.index, newIndex);
+      cellsOpacity[dragComponentProps.cell.id] = 0.5;
+      if (dragComponentProps.index !== newIndex) {
+        this.props.cellsShift(dragComponentProps.rowIndex, dragComponentProps.index, newIndex);
       }
       transform = { x: this.boundingBox.left + this.props.rowDisplay.cellsX[newIndex], y: this.boundingBox.top, scale: 1, time: 200 };
     } else {
@@ -109,11 +109,11 @@ class GridRow extends PluggableComponent {
       }
       let previousY = this.transform.y;
 
-      cellsOpacity[this.dragComponentProps.cell.id] = 0;
-      this.props.changeCellRow(this.dragComponentProps.gridId, this.dragComponentProps.rowIndex, this.dragComponentProps.index, this.props.gridId, this.props.index, newIndex);
+      cellsOpacity[dragComponentProps.cell.id] = 0;
+      this.props.changeCellRow(dragComponentProps.gridId, dragComponentProps.rowIndex, dragComponentProps.index, this.props.gridId, this.props.index, newIndex);
       let rowDisplay = this.props.rowDisplay;
       let y = this.boundingBox.top + (this.transform.y - previousY);
-      transform = { y: y, x: this.boundingBox.left + rowDisplay.cellsX[newIndex], scale: rowDisplay.cellsWidth[newIndex] / this.dragComponentProps.width, time: 200 };
+      transform = { y: y, x: this.boundingBox.left + rowDisplay.cellsX[newIndex], scale: rowDisplay.cellsWidth[newIndex] / dragComponentProps.width, time: 200 };
     }
 
     this.setState({ cellsOpacity });
@@ -121,15 +121,13 @@ class GridRow extends PluggableComponent {
     return transform;
   }
 
-  // didDrop() {
-  //   let cellsOpacity = this.state.cellsOpacity;
-  //   for (let cellId in cellsOpacity) {
-  //     cellsOpacity[cellId] = 1;
-  //   }
-  //   // cellsOpacity[this.dragComponentProps.cell.id] = 1;
-  //   this.setState({ cellsOpacity });
-  //   // this.props.resetOffering();
-  // }
+  didDrop() {
+    let cellsOpacity = this.state.cellsOpacity;
+    for (let cellId in cellsOpacity) {
+      cellsOpacity[cellId] = 1;
+    }
+    this.setState({ cellsOpacity });
+  }
 
   onDragEnter(dragPlugin) {
     this.currentDragOverCell = -1;
@@ -172,30 +170,12 @@ class GridRow extends PluggableComponent {
     this.updateCellsIndex(this.props.cells);
   }
 
-  resetOpacity() {
-    let cellsOpacity = this.state.cellsOpacity;
-    for (let cellId in cellsOpacity) {
-      cellsOpacity[cellId] = 1;
-    }
-    // cellsOpacity[this.dragComponentProps.cell.id] = 1;
-    this.setState({ cellsOpacity });
-  }
-
-  componentWillUnmount() {
-    super.componentWillUnmount();
-    dragManager.removeListener('dragEnd', this._dragEndBound);
-    this._dragEndBound = null;
-  }
-
   componentDidMount() {
     super.componentDidMount();
     let rowDisplay = this.props.rowDisplay || { y: 0, height: 0, cellsX: [], cellsWidth: [] };
     this.transform.setPosition(0, rowDisplay.y);
     this.transform.setHeight(rowDisplay.height);
     this.resetCellsPosition(rowDisplay.cellsX);
-
-    this._dragEndBound = this.resetOpacity.bind(this);
-    dragManager.on('dragEnd', this._dragEndBound);
   }
 
   render() {

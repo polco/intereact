@@ -70,9 +70,9 @@ class Main extends React.Component {
     let state = {};
     let grid = this.state[grid1Id];
     let initialRow = grid[row1Index];
-    if (!initialRow) { return; }
+    if (!initialRow) { return console.error(initialRow); }
     let cell = initialRow.cells.splice(cell1Index, 1)[0];
-    if (!cell) { return; }
+    if (!cell) { return console.error(initialRow); }
 
     if (grid1Id === grid2Id) {
       grid[row2Index].cells.splice(cell2Index, 0, cell);

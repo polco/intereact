@@ -113,6 +113,9 @@ class TransformPlugin  {
 
     this.isTransitioning = true;
     window.clearTimeout(this.transformToTimeout);
+    if (this.DOMNode.onTransitionEnd) {
+      this.DOMNode.onTransitionEnd();
+    }
     this.DOMNode.onTransitionEnd = null;
 
     this.style.transition = 'transform ' + time + 'ms linear';
