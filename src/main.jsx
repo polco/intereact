@@ -94,6 +94,7 @@ class Main extends React.Component {
   }
 
   render() {
+    this.grids = [];
     return (
       <div className='main'>
         <div className='grid grid1'>

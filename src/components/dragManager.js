@@ -33,6 +33,7 @@ class DragManager extends EventEmitter {
       this.dragContext.transform.setPositionOffset(0, 0);
       this.dragContext.transform.transformTo({ x: pos.x, y: pos.y, scale: 1 }).then(() => {
         this.dragPlugin.dragEnd();
+        this.emit('dragEnd');
         this.dragContext.transform.hide();
       });
     }, false);
@@ -106,6 +107,7 @@ class DragManager extends EventEmitter {
       this.dragContext.transform.hide();
       this.dragContext.transform.setPositionOffset(0, 0);
       this.dragPlugin.dragEnd();
+      this.emit('dragEnd');
       dropPlugin.didDrop('drop', this.dragPlugin, this.dragContext.transform.x, this.dragContext.transform.y);
     });
   }

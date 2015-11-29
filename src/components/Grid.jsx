@@ -134,11 +134,37 @@ export class Grid extends PluggableComponent {
     this.resetOffering();
   }
 
-  componentDidMount() {
-    super.componentDidMount();
+  refreshDimensions() {
     this.width = this.gridSystem.clientWidth;
     this.computeRowsDisplay(this.props.rows);
+    this._resizeBound = this._onResize.bind(this);
+    window.addEventListener('resize', this._resizeBound);
   }
+
+  componentDidMount() {
+    super.componentDidMount();
+    this.refreshDimensions();
+  }
+
+  _onResize() {
+    let now = Date.now();
+    if (now - this.lastResize < 100) {
+      return;
+    }
+    window.clearTimeout(this.resizeTimeout);
+    this.resizeTimeout = window.setTimeout(() => {
+      this.refreshDimensions();
+    }, 200);
+    this.lastResize = now;
+    this.refreshDimensions();
+  }
+
+  componentWillUnmount() {
+    super.componentWillUnmount();
+    window.removeEventListener('resize', this._resizeBound);
+    this._resizeBound = null;
+  }
+
 
   render() {
     let newRowIndex = this.state.newRowIndex;

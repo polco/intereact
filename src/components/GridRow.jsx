@@ -4,6 +4,7 @@ import { tapEvents, getTap } from 'components/tapHelper';
 import DropPlugin from 'components/DropPlugin';
 import TransformPlugin from 'components/TransformPlugin';
 import GridElement from 'components/GridElement';
+import dragManager from 'components/dragManager';
 import './GridRow.less';
 
 
@@ -120,15 +121,15 @@ class GridRow extends PluggableComponent {
     return transform;
   }
 
-  didDrop() {
-    let cellsOpacity = this.state.cellsOpacity;
-    // for (let cellId in this.state.cellsOpacity) {
-    //   cellsOpacity[cellId] = 1;
-    // }
-    cellsOpacity[this.dragComponentProps.cell.id] = 1;
-    this.setState({ cellsOpacity });
-    // this.props.resetOffering();
-  }
+  // didDrop() {
+  //   let cellsOpacity = this.state.cellsOpacity;
+  //   for (let cellId in cellsOpacity) {
+  //     cellsOpacity[cellId] = 1;
+  //   }
+  //   // cellsOpacity[this.dragComponentProps.cell.id] = 1;
+  //   this.setState({ cellsOpacity });
+  //   // this.props.resetOffering();
+  // }
 
   onDragEnter(dragPlugin) {
     this.currentDragOverCell = -1;
@@ -171,12 +172,30 @@ class GridRow extends PluggableComponent {
     this.updateCellsIndex(this.props.cells);
   }
 
+  resetOpacity() {
+    let cellsOpacity = this.state.cellsOpacity;
+    for (let cellId in cellsOpacity) {
+      cellsOpacity[cellId] = 1;
+    }
+    // cellsOpacity[this.dragComponentProps.cell.id] = 1;
+    this.setState({ cellsOpacity });
+  }
+
+  componentWillUnmount() {
+    super.componentWillUnmount();
+    dragManager.removeListener('dragEnd', this._dragEndBound);
+    this._dragEndBound = null;
+  }
+
   componentDidMount() {
     super.componentDidMount();
     let rowDisplay = this.props.rowDisplay || { y: 0, height: 0, cellsX: [], cellsWidth: [] };
     this.transform.setPosition(0, rowDisplay.y);
     this.transform.setHeight(rowDisplay.height);
     this.resetCellsPosition(rowDisplay.cellsX);
+
+    this._dragEndBound = this.resetOpacity.bind(this);
+    dragManager.on('dragEnd', this._dragEndBound);
   }
 
   render() {
