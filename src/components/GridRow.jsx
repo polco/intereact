@@ -112,6 +112,7 @@ class GridRow extends PluggableComponent {
       cellsOpacity[dragComponentProps.cell.id] = 0;
       this.props.changeCellRow(dragComponentProps.gridId, dragComponentProps.rowIndex, dragComponentProps.index, this.props.gridId, this.props.index, newIndex);
       let rowDisplay = this.props.rowDisplay;
+      this.boundingBox = this.DOMNode.getBoundingClientRect();
       let y = this.boundingBox.top + (this.transform.y - previousY);
       transform = { y: y, x: this.boundingBox.left + rowDisplay.cellsX[newIndex], scale: rowDisplay.cellsWidth[newIndex] / dragComponentProps.width, time: 200 };
     }
@@ -185,6 +186,15 @@ class GridRow extends PluggableComponent {
         {
           this.props.cells.map((cell, cellIndex) => {
             let index = this.cellsIndex[cell.id];
+            let style = {
+              backgroundSize: '100% 100%',
+              width: '100%',
+              height: '100%'
+            };
+
+            if (cell.backgroundImage) {
+              style.backgroundImage ='url(' + cell.backgroundImage + ')';
+            }
             return (
               <GridElement
                 gridId={this.props.gridId}
@@ -197,7 +207,12 @@ class GridRow extends PluggableComponent {
                 key={cell.id}
                 index={index}
                 cell={cell} >
-                <div className='cell' key={'cell' + cell.id} style={ {width: '100%', height: '100%'} }>{cell.content}</div>
+                <div
+                  className='cell'
+                  key={'cell' + cell.id}
+                  style={ style }>
+                  {cell.content}
+                </div>
               </GridElement>
             );
           })

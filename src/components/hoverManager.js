@@ -69,8 +69,8 @@ var stopListening;
 function touchEnd(e) {
   let tap = getTap(e);
   if (tap.count === 0) {
-    for (var i = 0, len = currentTouchedElements.length; i < len; i += 1) {
-      currentTouchedElements[i].hoverEnd();
+    for (var i = 0, len = lastTouchedElements.length; i < len; i += 1) {
+      lastTouchedElements[i].hoverEnd();
     }
     stopListening();
   }

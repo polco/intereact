@@ -52,11 +52,11 @@ class DropPlugin extends HoverPlugin  {
     reactComponent.onDragEnter = reactComponent.onDragEnter || onDragEnter;
     reactComponent.onDragLeave = reactComponent.onDragLeave || onDragLeave;
     this.onDropBound = this._onDrop.bind(this);
-    this.DOMNode.addEventListener('drop', this.onDropBound);
+    this.DOMNode.addEventListener('intereactdrop', this.onDropBound);
   }
 
   componentWillUnmount() {
-    this.DOMNode.removeEventListener('drop', this.onDropBound);
+    this.DOMNode.removeEventListener('intereactdrop', this.onDropBound);
     this.onDropBound = null;
     super.componentWillUnmount();
   }

@@ -27,7 +27,7 @@ class DragManager extends EventEmitter {
     document.body.appendChild(dragContainer);
     this.dragContainerNode = dragContainer;
 
-    document.addEventListener('drop', () => {
+    document.addEventListener('intereactdrop', () => {
       console.log('drop not caught!')
       let pos = this.initialPosition;
       this.dragContext.transform.setPositionOffset(0, 0);
@@ -60,7 +60,7 @@ class DragManager extends EventEmitter {
     this.isDragging = false;
     let dropTarget = document.elementFromPoint(this.dragContext.transform.x, this.dragContext.transform.y);
     let dropEvent = document.createEvent('Event');
-    dropEvent.initEvent('drop', true, true);
+    dropEvent.initEvent('intereactdrop', true, true);
     dropTarget.dispatchEvent(dropEvent);
   }
 
@@ -108,7 +108,7 @@ class DragManager extends EventEmitter {
       this.dragContext.transform.setPositionOffset(0, 0);
       this.dragPlugin.dragEnd();
       this.emit('dragEnd');
-      dropPlugin.didDrop('drop', this.dragPlugin, this.dragContext.transform.x, this.dragContext.transform.y);
+      dropPlugin.didDrop(this.dragPlugin, this.dragContext.transform.x, this.dragContext.transform.y);
     });
   }
 }

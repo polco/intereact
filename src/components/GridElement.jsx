@@ -44,11 +44,13 @@ class GridElement extends PluggableComponent {
 
   onDragStart() {
     this.close();
+    // this.transform.scaleTo(0.7);
     // this.DOMNode.style.opacity = 0.5;
   }
 
   onDragEnd() {
     // this.DOMNode.style.opacity = 1;
+    // this.transform.scaleTo(1);
   }
 
   onTapStart() {

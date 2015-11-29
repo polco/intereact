@@ -4,7 +4,7 @@ import GridRow from 'components/GridRow';
 import Scroller from 'components/Scroller';
 import PluggableComponent from 'components/PluggableComponent';
 import DropPlugin from 'components/DropPlugin';
-import HoverPlugin from 'components/HoverPlugin';
+// import HoverPlugin from 'components/HoverPlugin';
 import './Grid.less';
 
 const NEW_ROW_TIMEOUT = 400;
@@ -19,7 +19,7 @@ export class Grid extends PluggableComponent {
     this.newRowIndex = null;
 
     this.addPlugin(new DropPlugin());
-    this.addPlugin(new HoverPlugin());
+    // this.addPlugin(new HoverPlugin());
   }
 
   offerNewRow(rowIndex) {
@@ -122,8 +122,17 @@ export class Grid extends PluggableComponent {
     this.setState({ rowsDisplay, scrollerHeight });
   }
 
-  onTapLeave() {
+  onDragLeave() {
     this.resetOffering();
+    this.DOMNode.classList.remove('dragging-over');
+  }
+
+  onHoverEnd() {
+    this.DOMNode.classList.remove('dragging-over');
+  }
+
+  onDragEnter() {
+    this.DOMNode.classList.add('dragging-over');
   }
 
   componentWillReceiveProps(nextProps) {
@@ -138,9 +147,32 @@ export class Grid extends PluggableComponent {
     window.addEventListener('resize', this._resizeBound);
   }
 
+  onNativeDragOver(e) {
+    e.preventDefault();
+  }
+
+  onNativeDrop(e) {
+    e.preventDefault();
+    this.props.createNewCells(this.props.id, e.dataTransfer.files);
+  }
+
   componentDidMount() {
     super.componentDidMount();
     this.refreshDimensions();
+
+    this._boundNativeDragOver = this.onNativeDragOver.bind(this);
+    this.DOMNode.addEventListener('dragover', this._boundNativeDragOver);
+
+    this._boundNativeDrop = this.onNativeDrop.bind(this);
+    this.DOMNode.addEventListener('drop', this._boundNativeDrop);
+
+    /*
+    col.addEventListener('dragenter', handleDragEnter, false)
+  col.addEventListener('dragover', handleDragOver, false);
+  col.addEventListener('dragleave', handleDragLeave, false);
+  col.addEventListener('drop', handleDrop, false);
+  col.addEventListener('dragend', handleDragEnd, false);
+    */
   }
 
   _onResize() {
@@ -160,14 +192,21 @@ export class Grid extends PluggableComponent {
     super.componentWillUnmount();
     window.removeEventListener('resize', this._resizeBound);
     this._resizeBound = null;
+
+    this.DOMNode.removeEventListener('dragover', this._boundNativeDragOver);
+    this._boundNativeDragOver = null;
+
+    this.DOMNode.removeEventListener('drop', this._boundNativeDrop);
+    this._boundNativeDrop = null;
   }
 
 
   render() {
     let newRowIndex = this.state.newRowIndex;
     return (
-      <Scroller fingerCount={1} contentHeight={this.state.scrollerHeight}>
-        <div className='grid-system' ref={(ref) => { this.gridSystem = ref; }}>{
+      <div className='grid-system' ref={(ref) => { this.gridSystem = ref; }}>
+        <Scroller fingerCount={1} contentHeight={this.state.scrollerHeight}>
+        {
           this.props.rows.map((row, rowIndex) => {
             let rowDisplay = this.state.rowsDisplay[row.id] || { cellsX: [], cellsWidth: [], height: 0 }
             if (newRowIndex === rowIndex) {
@@ -195,8 +234,8 @@ export class Grid extends PluggableComponent {
             );
           })
         }
-        </div>
-      </Scroller>
+        </Scroller>
+      </div>
     );
   }
 }
