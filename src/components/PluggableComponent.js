@@ -12,12 +12,12 @@ class PluggableComponent extends React.Component {
     return plugin;
   }
 
-  removePlugin(plugin) {
-    let index = this.plugins.indexOf(plugin);
-    if (index != -1) {
-      this.plugins.splice(index, 1);
-    }
-  }
+  // removePlugin(plugin) {
+  //   let index = this.plugins.indexOf(plugin);
+  //   if (index != -1) {
+  //     this.plugins.splice(index, 1);
+  //   }
+  // }
 
   componentDidMount() {
     this.DOMNode = ReactDOM.findDOMNode(this);

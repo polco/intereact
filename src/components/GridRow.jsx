@@ -54,7 +54,7 @@ class GridRow extends PluggableComponent {
 
       this.isInFirstHalf = relativeX < rowDisplay.firstCellHalfWidth;
 
-      if (this.dragComponentProps.rowId === this.props.id && this.dragComponentProps.gridId === this.props.gridId) { // dragging on same row
+      if (this.dragComponentProps && this.dragComponentProps.rowId === this.props.id && this.dragComponentProps.gridId === this.props.gridId) { // dragging on same row
         if (currentDragOverCell === this.dragComponentProps.index || (currentDragOverCell === this.dragComponentProps.index - 1 && !this.isInFirstHalf)) {
           return this.resetCellsPosition();
         }
@@ -85,6 +85,10 @@ class GridRow extends PluggableComponent {
     let dragComponentProps = dragPlugin.reactComponent.props;
     let cellsOpacity = this.state.cellsOpacity;
 
+    if (!this.boundingBox) {
+      this.boundingBox = this.DOMNode.getBoundingClientRect();
+    }
+
     let dragWithinTheGrid = this.props.gridId === dragComponentProps.gridId;
     if (this.props.id === dragComponentProps.rowId && dragWithinTheGrid) {
       let newIndex;
@@ -112,7 +116,6 @@ class GridRow extends PluggableComponent {
       cellsOpacity[dragComponentProps.cell.id] = 0;
       this.props.changeCellRow(dragComponentProps.gridId, dragComponentProps.rowIndex, dragComponentProps.index, this.props.gridId, this.props.index, newIndex);
       let rowDisplay = this.props.rowDisplay;
-      this.boundingBox = this.DOMNode.getBoundingClientRect();
       let y = this.boundingBox.top + (this.transform.y - previousY);
       transform = { y: y, x: this.boundingBox.left + rowDisplay.cellsX[newIndex], scale: rowDisplay.cellsWidth[newIndex] / dragComponentProps.width, time: 200 };
     }
@@ -131,8 +134,8 @@ class GridRow extends PluggableComponent {
   }
 
   onDragEnter(dragPlugin) {
-    this.currentDragOverCell = -1;
     this.dragComponentProps = dragPlugin.reactComponent.props;
+    this.currentDragOverCell = -1;
     this.boundingBox = this.DOMNode.getBoundingClientRect();
     this._onTapMoveBound = this.onTapMove.bind(this);
     document.body.addEventListener(tapEvents.move, this._onTapMoveBound);
@@ -153,6 +156,29 @@ class GridRow extends PluggableComponent {
     this.removeListener();
   }
 
+  onNativeDrop(e) {
+    let newIndex;
+    if (this.isInFirstHalf) {
+      newIndex = 0;
+    } else {
+      newIndex = this.currentDragOverCell + 1;
+    }
+    this.props.createNewCellsAt(this.props.gridId, e.dataTransfer.files, this.props.index, newIndex);
+  }
+
+  onNativeDragEnter() {
+    this.currentDragOverCell = -1;
+    this.boundingBox = this.DOMNode.getBoundingClientRect();
+  }
+
+  onNativeDragOver(e) {
+    this.onTapMove(e);
+  }
+
+  onNativeDragLeave() {
+    this.resetCellsPosition();
+  }
+
   updateCellsIndex(cells) {
     this.cellsIndex = {};
     for (var i = 0, len = cells.length; i < len; i += 1) {
@@ -160,11 +186,17 @@ class GridRow extends PluggableComponent {
     }
   }
 
+  updateDisplay(props) {
+    this.transform.setPosition(0, props.rowDisplay.y);
+    this.transform.setHeight(props.rowDisplay.height);
+    this.resetCellsPosition(props.rowDisplay.cellsX);
+    this.transform.setOpacity(props.opacity !== undefined ? props.opacity : 1);
+  }
+
   componentWillReceiveProps(nextProps) {
     this.updateCellsIndex(nextProps.cells);
-    this.transform.setPosition(0, nextProps.rowDisplay.y);
-    this.transform.setHeight(nextProps.rowDisplay.height);
-    this.resetCellsPosition(nextProps.rowDisplay.cellsX);
+    this.updateDisplay(nextProps);
+    this.DOMNode.style.transition = 'transform 200ms linear';
   }
 
   componentWillMount() {
@@ -173,10 +205,11 @@ class GridRow extends PluggableComponent {
 
   componentDidMount() {
     super.componentDidMount();
-    let rowDisplay = this.props.rowDisplay || { y: 0, height: 0, cellsX: [], cellsWidth: [] };
-    this.transform.setPosition(0, rowDisplay.y);
-    this.transform.setHeight(rowDisplay.height);
-    this.resetCellsPosition(rowDisplay.cellsX);
+    // let rowDisplay = this.props.rowDisplay || { y: 0, height: 0, cellsX: [], cellsWidth: [] };
+    // this.transform.setPosition(0, rowDisplay.y);
+    // this.transform.setHeight(rowDisplay.height);
+    // this.resetCellsPosition(rowDisplay.cellsX);
+    this.updateDisplay(this.props);
   }
 
   render() {
@@ -193,7 +226,7 @@ class GridRow extends PluggableComponent {
             };
 
             if (cell.backgroundImage) {
-              style.backgroundImage ='url(' + cell.backgroundImage + ')';
+              style.backgroundImage ="url('" + cell.backgroundImage + "')";
             }
             return (
               <GridElement

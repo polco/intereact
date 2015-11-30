@@ -2,11 +2,13 @@
   position: relative;
 
   .grid-element {
+    // pointer-events: none;
     position: absolute;
     z-index: 1;
     top: 0;
     height: 100%;
     overflow: hidden;
+    opacity: 0;
 
     .cell {
       transition: opacity 100ms linear;
@@ -21,6 +23,6 @@
       opacity: 0.5;
     }
 
-    transition: transform 200ms linear;
+    // transition: transform 200ms linear;
   }
 }

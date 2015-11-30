@@ -72,7 +72,7 @@ class Main extends React.Component {
         });
       }
 
-      grid.push(newRow);
+      grid.splice(index, 0, newRow);
 
       let state = {};
       state[gridId] = grid;
@@ -80,26 +80,64 @@ class Main extends React.Component {
     });
   }
 
-  createNewCells(gridId, files) {
-    let grid = this.state[gridId];
+  loadRowAt(imageLoaders, index, gridId, grid, cellIdFrom) {
+    Promise.all(imageLoaders).then((images) => {
+      let now = Date.now(); // lol
+      let row = grid[index];
 
+      let spliceParams = [cellIdFrom, 0];
+      for (let i = 0; i < images.length; i += 1) {
+        let image = images[i];
+        spliceParams.push({
+          backgroundImage: image.src,
+          width: image.width,
+          height: image.height,
+          id: gridId + '-cell-' + (index * 50 + i) + now
+        });
+      }
+
+      row.cells.splice.apply(row.cells, spliceParams);
+
+      let state = {};
+      state[gridId] = grid;
+      this.setState(state);
+    });
+  }
+
+  createNewCellsAt(gridId, files, rowId, cellIdFrom) {
+    let grid = this.state[gridId];
     let imageLoaders = [];
-    let rows = [imageLoaders];
     for (let i = 0; i < files.length; i += 1) {
       let file = files[i];
-
-      if (imageLoaders.length === 5) {
-        rows.push(imageLoaders);
-        imageLoaders = [];
-      }
 
       if (file.type.match('image.*')) {
         imageLoaders.push(this.loadImage(file));
       }
     }
 
+    this.loadRowAt(imageLoaders, rowId, gridId, grid, cellIdFrom);
+  }
+
+  createNewCells(gridId, files, rowIndex) {
+    let grid = this.state[gridId];
+    let imageLoaders = [];
+    let rows = [imageLoaders];
+    rowIndex = rowIndex || 0;
+    for (let i = 0; i < files.length; i += 1) {
+      let file = files[i];
+
+      if (file.type.match('image.*')) {
+        imageLoaders.push(this.loadImage(file));
+
+        if (imageLoaders.length === 5 && i !== files.length - 1) {
+          imageLoaders = [];
+          rows.push(imageLoaders);
+        }
+      }
+    }
+
     for (let i = 0; i < rows.length; i += 1) {
-      this.loadRow(rows[i], i, gridId, grid);
+      this.loadRow(rows[i], rowIndex + i, gridId, grid);
     }
   }
 
@@ -176,10 +214,11 @@ class Main extends React.Component {
     return (
       <div className='main'>
         <div className='grid grid1'>
-          <input type='file' multiple='multiple' onChange={(event) => this.selecteFiles('grid1', event)} />
+          <input type='file' accept="image/*" multiple='multiple' onChange={(event) => this.selecteFiles('grid1', event)} />
           <Grid rows={this.state.grid1}
             id='grid1'
             key='grid1'
+            createNewCellsAt={this.createNewCellsAt.bind(this)}
             createNewCells={this.createNewCells.bind(this)}
             createRowWith={this.createRowWith.bind(this)}
             cellsShift={(rowIndex, cell1Index, cell2Index) => this.cellsShift('grid1', rowIndex, cell1Index, cell2Index)}
@@ -187,10 +226,11 @@ class Main extends React.Component {
         </div>
 
         <div className='grid grid2'>
-          <input type='file' multiple='multiple' onChange={(event) => this.selecteFiles('grid1', event)} />
+          <input type='file' accept="image/*" multiple='multiple' onChange={(event) => this.selecteFiles('grid2', event)} />
           <Grid rows={this.state.grid2}
             id='grid2'
             key='grid2'
+            createNewCellsAt={this.createNewCellsAt.bind(this)}
             createNewCells={this.createNewCells.bind(this)}
             createRowWith={this.createRowWith.bind(this)}
             cellsShift={(rowIndex, cell1Index, cell2Index) => this.cellsShift('grid2', rowIndex, cell1Index, cell2Index)}

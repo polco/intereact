@@ -8,13 +8,13 @@ import DropPlugin from 'components/DropPlugin';
 import './Grid.less';
 
 const NEW_ROW_TIMEOUT = 400;
-const MAX_CELL_HEIGHT = 300;
+const MAX_CELL_HEIGHT_CONTAINER_FACTOR = 0.25;
 const ROW_SHIFT_FACTOR = 0.1;
 
 export class Grid extends PluggableComponent {
   constructor(props) {
     super(props);
-    this.state = { rowsDisplay: {}, newRowIndex: null, scrollerHeight: 0 };
+    this.state = { rowsDisplay: {}, newRowIndex: null, scrollerHeight: 0, rowsOpacity: {} };
     this.newRowTimer = null;
     this.newRowIndex = null;
 
@@ -35,10 +35,12 @@ export class Grid extends PluggableComponent {
   }
 
   offerNewRowAfter(rowIndex) {
+    console.log('offerNewRowAfter')
     this.offerNewRow(rowIndex);
   }
 
   offerNewRowBefore(rowIndex) {
+    console.log('offerNewRowBefore')
     this.offerNewRow(rowIndex - 1);
   }
 
@@ -46,9 +48,22 @@ export class Grid extends PluggableComponent {
     let dropRowIndex = this.newRowIndex !== null ? this.newRowIndex + 1 : this.props.rows.length;
     let dragCellProps = dragPlugin.reactComponent.props;
     let newRow = this.props.createRowWith(this.props.id, dropRowIndex, dragCellProps.gridId, dragCellProps.rowIndex, dragCellProps.index);
+    let rowsOpacity = this.state.rowsOpacity;
+    rowsOpacity[newRow.id] = 0;
+    this.setState({ rowsOpacity: rowsOpacity });
+    if (!this.boundingBox) {
+      this.boundingBox = this.DOMNode.getBoundingClientRect()
+    }
     let rowDisplay = this.state.rowsDisplay[newRow.id];
-    let boundingBox = this.DOMNode.getBoundingClientRect()
-    return { x: boundingBox.left + rowDisplay.cellsX[0], y: boundingBox.top + rowDisplay.y, scale: rowDisplay.cellsWidth[0] / dragCellProps.width, time: 200 };
+    return { x: this.boundingBox.left + rowDisplay.cellsX[0], y: this.boundingBox.top + rowDisplay.y, scale: rowDisplay.cellsWidth[0] / dragCellProps.width, time: 200 };
+  }
+
+  didDrop() {
+    let rowsOpacity = this.state.rowsOpacity;
+    for (let rowId in rowsOpacity) {
+      rowsOpacity[rowId] = 1;
+    }
+    this.setState({ rowsOpacity });
   }
 
   resetOffering() {
@@ -56,6 +71,7 @@ export class Grid extends PluggableComponent {
       return;
     }
 
+    console.log('resetOffering')
     this.newRowIndex = null;
     window.clearTimeout(this.newRowTimer);
     this.setState({ newRowIndex: null });
@@ -78,9 +94,9 @@ export class Grid extends PluggableComponent {
 
     let rowWidth = this.width;
     let height = Math.floor(rowWidth * minHeight / totalWidth);
-    let reachedMaxHeight = height > MAX_CELL_HEIGHT;
+    let reachedMaxHeight = height > this.maxHeight;
     if (reachedMaxHeight) {
-      height = MAX_CELL_HEIGHT;
+      height = this.maxHeight;
     }
 
     let cellsWidth = [];
@@ -132,6 +148,7 @@ export class Grid extends PluggableComponent {
   }
 
   onDragEnter() {
+    this.boundingBox = this.DOMNode.getBoundingClientRect();
     this.DOMNode.classList.add('dragging-over');
   }
 
@@ -142,29 +159,23 @@ export class Grid extends PluggableComponent {
 
   refreshDimensions() {
     this.width = this.gridSystem.clientWidth;
+    this.maxHeight = this.gridSystem.clientHeight * MAX_CELL_HEIGHT_CONTAINER_FACTOR;
     this.computeRowsDisplay(this.props.rows);
     this._resizeBound = this._onResize.bind(this);
     window.addEventListener('resize', this._resizeBound);
   }
 
-  onNativeDragOver(e) {
-    e.preventDefault();
-  }
-
   onNativeDrop(e) {
-    e.preventDefault();
-    this.props.createNewCells(this.props.id, e.dataTransfer.files);
+    if (this.newRowIndex !== null) {
+      this.props.createNewCells(this.props.id, e.dataTransfer.files, this.newRowIndex + 1);
+    } else {
+      this.props.createNewCells(this.props.id, e.dataTransfer.files);
+    }
   }
 
   componentDidMount() {
     super.componentDidMount();
     this.refreshDimensions();
-
-    this._boundNativeDragOver = this.onNativeDragOver.bind(this);
-    this.DOMNode.addEventListener('dragover', this._boundNativeDragOver);
-
-    this._boundNativeDrop = this.onNativeDrop.bind(this);
-    this.DOMNode.addEventListener('drop', this._boundNativeDrop);
 
     /*
     col.addEventListener('dragenter', handleDragEnter, false)
@@ -192,12 +203,6 @@ export class Grid extends PluggableComponent {
     super.componentWillUnmount();
     window.removeEventListener('resize', this._resizeBound);
     this._resizeBound = null;
-
-    this.DOMNode.removeEventListener('dragover', this._boundNativeDragOver);
-    this._boundNativeDragOver = null;
-
-    this.DOMNode.removeEventListener('drop', this._boundNativeDrop);
-    this._boundNativeDrop = null;
   }
 
 
@@ -220,10 +225,12 @@ export class Grid extends PluggableComponent {
               <GridRow
                 gridId={this.props.id}
                 rowDisplay={rowDisplay}
+                opacity={this.state.rowsOpacity[row.id]}
                 key={row.id}
                 id={row.id}
                 index={rowIndex}
                 offeringRow
+                createNewCellsAt={this.props.createNewCellsAt.bind(this)}
                 computeRowDisplay={this.computeRowDisplay.bind(this)}
                 changeCellRow={this.props.changeCellRow.bind(this)}
                 resetOffering={this.resetOffering.bind(this)}

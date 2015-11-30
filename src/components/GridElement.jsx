@@ -61,7 +61,7 @@ class GridElement extends PluggableComponent {
     this.DOMNode.classList.remove('pressed');
   }
 
-  onDragEnter(dragPlugin) {
+  onDragEnter() {
     this.DOMNode.classList.add('hover');
   }
 
@@ -74,7 +74,7 @@ class GridElement extends PluggableComponent {
   }
 
   updateComponentDisplay(props) {
-    this.transform.setOpacity(props.hasOwnProperty('opacity') ? props.opacity : 1);
+    this.transform.setOpacity(props.opacity != undefined ? props.opacity : 1);
     this.transform.setPosition(props.x, 0);
     this.transform.setDimensions(props.width, props.height);
   }
@@ -86,6 +86,9 @@ class GridElement extends PluggableComponent {
 
   componentWillReceiveProps(nextProps) {
     this.updateComponentDisplay(nextProps);
+    window.setTimeout(() => {
+      this.DOMNode.style.transition = 'transform 200ms linear';
+    }, 0);
   }
 
   render() {
