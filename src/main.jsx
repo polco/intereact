@@ -3,6 +3,8 @@ import Grid from 'components/Grid';
 import Promise from 'bluebird';
 import './style.less';
 
+var URL = window.URL || window.webkitURL;
+
 class Main extends React.Component {
   constructor(props) {
     super(props);
@@ -32,9 +34,9 @@ class Main extends React.Component {
 
   loadImage(file) {
     return new Promise(function(resolve, reject) {
-      let reader = new FileReader();
+      // let reader = new FileReader();
 
-      reader.onload = (evt) => {
+      // reader.onload = (evt) => {
         let image = new Image();
         image.onload = () => {
           resolve(image);
@@ -45,15 +47,15 @@ class Main extends React.Component {
           reject(e);
         }
 
-        image.src = evt.target.result;
-      };
+        image.src = URL.createObjectURL(file);
+      // };
 
-      reader.onerror = function (e) {
-        console.log('error while reasing the image', src, e);
-        reject(e);
-      }
+      // reader.onerror = function (e) {
+      //   console.log('error while reasing the image', src, e);
+      //   reject(e);
+      // }
 
-      reader.readAsDataURL(file);
+      // reader.readAsDataURL(file);
     });
   }
 
@@ -142,7 +144,6 @@ class Main extends React.Component {
   }
 
   createRowWith(gridToId, newRowIndex, gridFromId, rowIndex, cellIndex) {
-    console.log('[createRowWith]', gridToId, newRowIndex, gridFromId, rowIndex, cellIndex);
     let gridFrom = this.state[gridFromId];
     let initialRow = gridFrom[rowIndex];
     let cell = initialRow.cells.splice(cellIndex, 1)[0];
@@ -166,7 +167,6 @@ class Main extends React.Component {
   }
 
   cellsShift(gridId, rowIndex, cell1Index, cell2Index) {
-    console.log('[cellsShift]', rowIndex, cell1Index, cell2Index);
     let array = this.state[gridId];
     let row = array[rowIndex];
     let cell1 = row.cells.splice(cell1Index, 1)[0];
@@ -182,7 +182,6 @@ class Main extends React.Component {
   }
 
   changeCellRow(grid1Id, row1Index, cell1Index, grid2Id, row2Index, cell2Index) {
-    console.log('[changeCellRow]', grid1Id, row1Index, cell1Index, grid2Id, row2Index, cell2Index);
     let state = {};
     let grid = this.state[grid1Id];
     let initialRow = grid[row1Index];
