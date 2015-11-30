@@ -35,12 +35,10 @@ export class Grid extends PluggableComponent {
   }
 
   offerNewRowAfter(rowIndex) {
-    console.log('offerNewRowAfter')
     this.offerNewRow(rowIndex);
   }
 
   offerNewRowBefore(rowIndex) {
-    console.log('offerNewRowBefore')
     this.offerNewRow(rowIndex - 1);
   }
 
@@ -71,7 +69,6 @@ export class Grid extends PluggableComponent {
       return;
     }
 
-    console.log('resetOffering')
     this.newRowIndex = null;
     window.clearTimeout(this.newRowTimer);
     this.setState({ newRowIndex: null });

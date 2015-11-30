@@ -11,7 +11,7 @@ document.body.addEventListener(tapEvents.start, function () {
 }, true);
 
 document.body.addEventListener(tapEvents.start, function (e) {
-  e.preventDefault();
+  // e.preventDefault();
   if (handle) {
     handler.emit('handleTaken', handle);
   }
@@ -22,7 +22,7 @@ document.body.addEventListener(tapEvents.move, function (e) {
 });
 
 document.body.addEventListener(tapEvents.end, function (e) {
-  e.preventDefault();
+  // e.preventDefault();
   if (getTap(e).count === 0) {
     handle = null;
     isStillTapping = false;
