@@ -1,4 +1,3 @@
-import { EventEmitter } from 'events';
 import { hovering } from 'components/hoverManager';
 
 class TransformPlugin  {
@@ -73,21 +72,17 @@ class TransformPlugin  {
 
     this.isTransitioning = true;
     window.clearTimeout(this.transformToTimeout);
-    this.DOMNode.onTransitionEnd = null;
     this.style.transition = 'transform ' + time + 'ms linear';
     this.setScale(scale);
 
     return new Promise((resolve, reject) => {
-      const onTransitionEnd = () => {
+      this.transformToTimeout = window.setTimeout(() => {
         window.clearTimeout(this.transformToTimeout);
         this.DOMNode.onTransitionEnd = null;
         this.style.transition = '';
         this.isTransitioning = false;
         resolve();
-      }
-
-      this.transformToTimeout = window.setTimeout(onTransitionEnd, time);
-      this.DOMNode.onTransitionEnd = onTransitionEnd;
+      }, time);
     });
   }
 
@@ -113,25 +108,17 @@ class TransformPlugin  {
 
     this.isTransitioning = true;
     window.clearTimeout(this.transformToTimeout);
-    if (this.DOMNode.onTransitionEnd) {
-      this.DOMNode.onTransitionEnd();
-    }
-    this.DOMNode.onTransitionEnd = null;
 
     this.style.transition = 'transform ' + time + 'ms linear';
     this.transform(x, y, scale);
 
     return new Promise((resolve) => {
-      const onTransitionEnd = () => {
-        window.clearTimeout(this.transformToTimeout);
-        this.DOMNode.onTransitionEnd = null;
+      this.transformToTimeout = window.setTimeout(() => {
         this.style.transition = '';
         this.isTransitioning = false;
+        this.transformCallback = null;
         resolve();
-      }
-
-      this.transformToTimeout = window.setTimeout(onTransitionEnd, time);
-      this.DOMNode.onTransitionEnd = onTransitionEnd;
+      }, time);
     });
   }
 

@@ -214,7 +214,7 @@ class Main extends React.Component {
     return (
       <div className='main'>
         <div className='grid grid1'>
-          <input type='file' accept="image/*" multiple='multiple' ref={(e) => { window.test = e; }} onChange={(event) => this.selecteFiles('grid1', event)} />
+          <input type='file' accept="image/*"  name='uploads[]' multiple ref={(red) => { this.inputSelect = red; }} onChange={(event) => this.selecteFiles('grid1', event)} />
           <Grid rows={this.state.grid1}
             id='grid1'
             key='grid1'
@@ -226,7 +226,7 @@ class Main extends React.Component {
         </div>
 
         <div className='grid grid2'>
-          <input type='file' accept="image/*" multiple='multiple' onChange={(event) => this.selecteFiles('grid2', event)} />
+          <input type='file' accept="image/*" name='uploads[]' multiple onChange={(event) => this.selecteFiles('grid2', event)} />
           <Grid rows={this.state.grid2}
             id='grid2'
             key='grid2'

@@ -10,15 +10,9 @@ let currentTap = {
   count: 0
 };
 
-let lastTimeStamp = 0;
-
 let getTap;
 if (canTouch) {
   getTap = function (e) {
-    if (e.timeStamp === lastTimeStamp) {
-      return currentTap;
-    }
-    lastTimeStamp = e.timeStamp;
     var tapList = e.touches || [];
     var tapCount = tapList.length;
     var taps = [];
@@ -39,10 +33,6 @@ if (canTouch) {
   };
 } else {
   getTap = function (e) {
-    if (e.timeStamp === lastTimeStamp) {
-      return currentTap;
-    }
-    lastTimeStamp = e.timeStamp;
     currentTap.x = e.clientX;
     currentTap.y = e.clientY;
     currentTap.count = e.type === 'mouseup' ? 0 : 1;
