@@ -1,5 +1,6 @@
 import React from 'react';
 import Grid from 'components/Grid';
+import Moodboard from 'components/Moodboard';
 import Promise from 'bluebird';
 import './style.less';
 
@@ -11,7 +12,8 @@ class Main extends React.Component {
 
     this.state = {
       grid1: [],
-      grid2: []
+      grid2: [],
+      moodboadItems: {}
     };
   }
 
@@ -209,6 +211,26 @@ class Main extends React.Component {
     this.setState(state);
   }
 
+
+  addItem(item) {
+    let moodboadItems = this.state.moodboadItems;
+
+    item.id += Date.now(); // lol
+    moodboadItems[item.id] = item;
+
+    this.setState({ moodboadItems });
+  }
+
+  transformItem(itemId, transform) {
+    let moodboadItems = this.state.moodboadItems;
+
+    let item = moodboadItems[itemId];
+    item.x = transform.x;
+    item.y = transform.y;
+
+    this.setState({ moodboadItems });
+  }
+
   render() {
     this.grids = [];
     return (
@@ -225,16 +247,12 @@ class Main extends React.Component {
             changeCellRow={this.changeCellRow.bind(this)} />
         </div>
 
-        <div className='grid grid2'>
-          <input type='file' accept="image/*" name='uploads[]' multiple onChange={(event) => this.selecteFiles('grid2', event)} />
-          <Grid rows={this.state.grid2}
-            id='grid2'
-            key='grid2'
-            createNewCellsAt={this.createNewCellsAt.bind(this)}
-            createNewCells={this.createNewCells.bind(this)}
-            createRowWith={this.createRowWith.bind(this)}
-            cellsShift={(rowIndex, cell1Index, cell2Index) => this.cellsShift('grid2', rowIndex, cell1Index, cell2Index)}
-            changeCellRow={this.changeCellRow.bind(this)} />
+        <div className='moodboard-container'>
+          <Moodboard items={this.state.moodboadItems}
+            id='moodboard1'
+            addItem={this.addItem.bind(this)}
+            transformItem={this.transformItem.bind(this)}
+           />
         </div>
       </div>
     )
@@ -242,3 +260,16 @@ class Main extends React.Component {
 }
 
 export default Main;
+
+
+        // <div className='grid grid2'>
+        //   <input type='file' accept="image/*" name='uploads[]' multiple onChange={(event) => this.selecteFiles('grid2', event)} />
+        //   <Grid rows={this.state.grid2}
+        //     id='grid2'
+        //     key='grid2'
+        //     createNewCellsAt={this.createNewCellsAt.bind(this)}
+        //     createNewCells={this.createNewCells.bind(this)}
+        //     createRowWith={this.createRowWith.bind(this)}
+        //     cellsShift={(rowIndex, cell1Index, cell2Index) => this.cellsShift('grid2', rowIndex, cell1Index, cell2Index)}
+        //     changeCellRow={this.changeCellRow.bind(this)} />
+        // </div>

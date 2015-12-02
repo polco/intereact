@@ -8,10 +8,22 @@ function onDragStart() {}
 function onDragEnd() {}
 
 class DragPlugin {
-  constructor(template) {
+  constructor(template, source) {
     this.template = template;
     this.enable = true;
     this.dragStarted = false;
+
+    if (source) {
+      this.setSource(source);
+    }
+  }
+
+  setSource(source) {
+    this.source = source;
+  }
+
+  setTemplate(template) {
+    this.template = template;
   }
 
   setEnable(enable) {

@@ -88,7 +88,7 @@ class DragManager extends EventEmitter {
   }
 
   setDropTarget(dropPlugin) {
-    let dropTransform = dropPlugin.willDrop(this.dragPlugin, this.dragContext.x, this.dragContext.y);
+    let dropTransform = dropPlugin.willDrop(this.dragPlugin, this.dragContext.transform.x, this.dragContext.transform.y);
     if (!dropTransform) {
       let x, y;
       if (dropPlugin.matchTarget) {

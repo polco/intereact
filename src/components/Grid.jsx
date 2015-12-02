@@ -45,6 +45,7 @@ export class Grid extends PluggableComponent {
   willDrop(dragPlugin) {
     let dropRowIndex = this.newRowIndex !== null ? this.newRowIndex + 1 : this.props.rows.length;
     let dragCellProps = dragPlugin.reactComponent.props;
+    if (!dragCellProps.gridId) { return false; }
     let newRow = this.props.createRowWith(this.props.id, dropRowIndex, dragCellProps.gridId, dragCellProps.rowIndex, dragCellProps.index);
     let rowsOpacity = this.state.rowsOpacity;
     rowsOpacity[newRow.id] = 0;
