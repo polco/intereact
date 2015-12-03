@@ -8,13 +8,16 @@ function onDragStart() {}
 function onDragEnd() {}
 
 class DragPlugin {
-  constructor(template, source) {
-    this.template = template;
+  constructor(options) {
+    options = options || {};
+    this.template = options.template || null;
     this.enable = true;
     this.dragStarted = false;
+    this.dragScale = options.scale || 1.2;
+    this.transitionTime = options.time || 200;
 
-    if (source) {
-      this.setSource(source);
+    if (options.source) {
+      this.setSource(options.source);
     }
   }
 
@@ -57,7 +60,7 @@ class DragPlugin {
 
     this._reset();
     if (interactionHandler.requestHandle(this)) {
-      dragManager.startDrag(this, tap.x, tap.y);
+      dragManager.startDrag(this, tap.x, tap.y, this.dragScale, this.transitionTime);
     }
   }
 

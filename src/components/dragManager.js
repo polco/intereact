@@ -49,7 +49,7 @@ class DragManager extends EventEmitter {
   _tapMove(e) {
     let tap = getTap(e);
     if (this.dragContext.transform.isTransitioning) {
-      this.dragContext.transform.transformTo({ x: tap.x, y: tap.y, scale: 1.2, time: 50 });
+      this.dragContext.transform.transformTo({ x: tap.x, y: tap.y, scale: this.dragPlugin.dragScale, time: 50 });
     } else {
       this.dragContext.transform.setPosition(tap.x, tap.y);
     }
@@ -64,7 +64,7 @@ class DragManager extends EventEmitter {
     dropTarget.dispatchEvent(dropEvent);
   }
 
-  startDrag(dragPlugin, x, y) {
+  startDrag(dragPlugin, x, y, scale, time) {
     startHovering();
     this.tapMoveBound = this._tapMove.bind(this);
     document.body.addEventListener(tapEvents.move, this.tapMoveBound);
@@ -82,7 +82,7 @@ class DragManager extends EventEmitter {
     this.dragContext.transform.setDimensions(elementBox.width, elementBox.height);
     this.dragContext.transform.setPositionOffset(-elementBox.width/2, -elementBox.height/2);
     this.dragContext.transform.show().then(() => {
-      return this.dragContext.transform.transformTo({ x: x, y: y, scale: 1.2 });
+      return this.dragContext.transform.transformTo({ x: x, y: y, scale: scale, time: time });
     });
     dragPlugin.dragStart();
   }
@@ -97,7 +97,7 @@ class DragManager extends EventEmitter {
         this.dragContext.transform.setPositionOffset(0, 0);
         dropTransform = { x: elementBox.left, y: elementBox.top, scale: 1 };
       } else {
-        dropTransform = { scale: 1  }
+        dropTransform = { scale: 1, time: this.dragPlugin.transitionTime }
       }
     } else {
       this.dragContext.transform.setPositionOffset(0, 0);

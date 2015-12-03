@@ -297,6 +297,27 @@ class Main extends React.Component {
     this.setState(state);
   }
 
+  updateItemDimensions(moodboardId, itemId, width, height, x, y) {
+    let state = {};
+    let moodboard = this.state[moodboardId];
+
+    for (let i = 0; i < moodboard.length; i += 1) {
+      if (moodboard[i].id === itemId) {
+        let item = moodboard[i];
+        item.width = width;
+        item.height = height;
+        item.x = x;
+        item.y = y;
+        moodboard[i] = moodboard[moodboard.length - 1];
+        moodboard[moodboard.length - 1] = item;
+        break;
+      }
+    }
+
+    state[moodboardId] = moodboard;
+    this.setState(this.state);
+  }
+
   putInFront(moodboardId, itemId) {
     let state = {};
     let moodboard = this.state[moodboardId];
@@ -348,6 +369,7 @@ class Main extends React.Component {
           <Moodboard items={this.state.moodboard1}
             id='moodboard1'
             putInFront={this.putInFront.bind(this)}
+            updateItemDimensions={this.updateItemDimensions.bind(this)}
             moveItem={this.moveItem.bind(this)}
             transformItem={this.transformItem.bind(this)}
            />

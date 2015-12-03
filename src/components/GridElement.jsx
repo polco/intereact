@@ -8,7 +8,7 @@ class GridElement extends PluggableComponent {
     super(props);
 
     this.addPlugin(new TapPlugin());
-    this.dragPlugin = this.addPlugin(new DragPlugin(this.props.children, 'scrapbook'));
+    this.dragPlugin = this.addPlugin(new DragPlugin({ template: this.props.children, source: 'scrapbook' }));
     this.transform = this.addPlugin(new TransformPlugin());
 
     this.opened = false;

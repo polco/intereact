@@ -49,6 +49,7 @@ export class Moodboard extends PluggableComponent {
         this.props.items.map((item) => {
           return (<MoodboardItem
             putInFront={this.props.putInFront.bind(this)}
+            updateItemDimensions={this.props.updateItemDimensions.bind(this)}
             key={item.id}
             id={item.id}
             moodboardId={this.props.id}
