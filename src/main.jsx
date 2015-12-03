@@ -13,7 +13,7 @@ class Main extends React.Component {
     this.state = {
       grid1: [],
       grid2: [],
-      moodboadItems: {}
+      moodboard1: {}
     };
   }
 
@@ -211,24 +211,76 @@ class Main extends React.Component {
     this.setState(state);
   }
 
+  moveItem(item, from, to) {
+    let state = {};
 
-  addItem(item) {
-    let moodboadItems = this.state.moodboadItems;
+    if (from.type === 'scrapbook') {
+      let elementProps = from.element.props;
+      let grid = this.state[elementProps.gridId];
+      let row = grid[elementProps.rowIndex];
+      row.cells[elementProps.index];
 
-    item.id += Date.now(); // lol
-    moodboadItems[item.id] = item;
+      if (row.cells.length === 1) {
+        grid.splice(elementProps.rowIndex, 1)
+      } else {
+        row.cells.splice(elementProps.index, 1);
+      }
 
-    this.setState({ moodboadItems });
+      state[elementProps.gridId] = grid;
+    } else if (from.type === 'moodboard') {
+      let moodboard = this.state[from.id];
+      delete moodboard[item.id];
+      state[from.id] = moodboard;
+    } else {
+      return console.error('what did you do ?! do not know where that stuff is from');
+    }
+
+    if (to.type === 'scrapbook') {
+      let now = Date.now();
+      let grid = this.state[to.id];
+      let rowIndex = to.hasOwnProperty('rowIndex') ? to.rowIndex : grid.length
+      let row = grid[rowIndex];
+      if (!row) {
+        row = { cells: [], id: to.id + '-row-' + now + rowIndex };
+        grid.splice(rowIndex, 0, row);
+      }
+
+      let cellIndex = to.hasOwnProperty('cellIndex') ? to.cellIndex : row.cells.length
+      row.cells.splice(cellIndex, 0, {
+        backgroundImage: item.content.backgroundImage,
+        width: item.content.width,
+        height: item.content.height,
+        id: item.id
+      });
+      state[to.id] = grid;
+      this.setState(state);
+      return row;
+    } else if (to.type === 'moodboard') {
+      let moodboard = this.state[to.id];
+      moodboard[item.id] = item;
+      state[to.id] = moodboard;
+      this.setState(state);
+    } else {
+      return console.error('what did you do ?! do not know where that stuff is going');
+    }
   }
 
-  transformItem(itemId, transform) {
-    let moodboadItems = this.state.moodboadItems;
+  transformItem(from, what, transform) {
+    let state = {};
 
-    let item = moodboadItems[itemId];
-    item.x = transform.x;
-    item.y = transform.y;
+    if (from.type === 'moodboard') {
+      let moodboad = this.state[from.id];
 
-    this.setState({ moodboadItems });
+      let item = moodboad[what.itemId];
+      item.x = transform.x;
+      item.y = transform.y;
+
+      state[from.id] = moodboad;
+    } else {
+      return console.error('it is not allooooowwweed!');
+    }
+
+    this.setState(state);
   }
 
   render() {
@@ -236,10 +288,11 @@ class Main extends React.Component {
     return (
       <div className='main'>
         <div className='grid grid1'>
-          <input type='file' accept="image/*"  name='uploads[]' multiple ref={(red) => { this.inputSelect = red; }} onChange={(event) => this.selecteFiles('grid1', event)} />
+          <input type='file' accept="image/*"  name='uploads[]' multiple onChange={(event) => this.selecteFiles('grid1', event)} />
           <Grid rows={this.state.grid1}
             id='grid1'
             key='grid1'
+            moveItem={this.moveItem.bind(this)}
             createNewCellsAt={this.createNewCellsAt.bind(this)}
             createNewCells={this.createNewCells.bind(this)}
             createRowWith={this.createRowWith.bind(this)}
@@ -247,10 +300,23 @@ class Main extends React.Component {
             changeCellRow={this.changeCellRow.bind(this)} />
         </div>
 
+        <div className='grid grid2'>
+          <input type='file' accept="image/*" name='uploads[]' multiple onChange={(event) => this.selecteFiles('grid2', event)} />
+          <Grid rows={this.state.grid2}
+            id='grid2'
+            key='grid2'
+            moveItem={this.moveItem.bind(this)}
+            createNewCellsAt={this.createNewCellsAt.bind(this)}
+            createNewCells={this.createNewCells.bind(this)}
+            createRowWith={this.createRowWith.bind(this)}
+            cellsShift={(rowIndex, cell1Index, cell2Index) => this.cellsShift('grid2', rowIndex, cell1Index, cell2Index)}
+            changeCellRow={this.changeCellRow.bind(this)} />
+        </div>
+
         <div className='moodboard-container'>
-          <Moodboard items={this.state.moodboadItems}
+          <Moodboard items={this.state.moodboard1}
             id='moodboard1'
-            addItem={this.addItem.bind(this)}
+            moveItem={this.moveItem.bind(this)}
             transformItem={this.transformItem.bind(this)}
            />
         </div>
@@ -262,14 +328,4 @@ class Main extends React.Component {
 export default Main;
 
 
-        // <div className='grid grid2'>
-        //   <input type='file' accept="image/*" name='uploads[]' multiple onChange={(event) => this.selecteFiles('grid2', event)} />
-        //   <Grid rows={this.state.grid2}
-        //     id='grid2'
-        //     key='grid2'
-        //     createNewCellsAt={this.createNewCellsAt.bind(this)}
-        //     createNewCells={this.createNewCells.bind(this)}
-        //     createRowWith={this.createRowWith.bind(this)}
-        //     cellsShift={(rowIndex, cell1Index, cell2Index) => this.cellsShift('grid2', rowIndex, cell1Index, cell2Index)}
-        //     changeCellRow={this.changeCellRow.bind(this)} />
-        // </div>
+

@@ -8,7 +8,7 @@ class GridElement extends PluggableComponent {
     super(props);
 
     this.addPlugin(new TapPlugin());
-    this.dragPlugin = this.addPlugin(new DragPlugin(this.props.children));
+    this.dragPlugin = this.addPlugin(new DragPlugin(this.props.children, 'scrapbook'));
     this.transform = this.addPlugin(new TransformPlugin());
 
     this.opened = false;
@@ -79,7 +79,6 @@ class GridElement extends PluggableComponent {
 
   componentWillReceiveProps(nextProps) {
     this.updateComponentDisplay(nextProps);
-    this.dragPlugin.setSource(nextProps.gridId);
     window.setTimeout(() => {
       this.DOMNode.style.transition = 'transform 200ms linear';
     }, 0);

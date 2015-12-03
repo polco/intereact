@@ -44,17 +44,36 @@ export class Grid extends PluggableComponent {
 
   willDrop(dragPlugin) {
     let dropRowIndex = this.newRowIndex !== null ? this.newRowIndex + 1 : this.props.rows.length;
-    let dragCellProps = dragPlugin.reactComponent.props;
-    if (!dragCellProps.gridId) { return false; }
-    let newRow = this.props.createRowWith(this.props.id, dropRowIndex, dragCellProps.gridId, dragCellProps.rowIndex, dragCellProps.index);
-    let rowsOpacity = this.state.rowsOpacity;
-    rowsOpacity[newRow.id] = 0;
-    this.setState({ rowsOpacity: rowsOpacity });
-    if (!this.boundingBox) {
-      this.boundingBox = this.DOMNode.getBoundingClientRect()
+    let dragComponentProps = dragPlugin.reactComponent.props;
+
+    if (dragPlugin.source === 'moodboard') {
+      let newRow = this.props.moveItem(
+        { id: dragComponentProps.id, content: dragComponentProps.item.content },
+        { type: 'moodboard', id: dragComponentProps.moodboardId },
+        { type: 'scrapbook', id: this.props.id, rowIndex: dropRowIndex }
+      );
+      let rowsOpacity = this.state.rowsOpacity;
+      rowsOpacity[newRow.id] = 0;
+      this.setState({ rowsOpacity: rowsOpacity });
+      if (!this.boundingBox) {
+        this.boundingBox = this.DOMNode.getBoundingClientRect()
+      }
+      let rowDisplay = this.state.rowsDisplay[newRow.id];
+      return { x: this.boundingBox.left + rowDisplay.cellsX[0], y: this.boundingBox.top + rowDisplay.y, scale: rowDisplay.cellsWidth[0] / dragComponentProps.item.width, time: 200 };
+    } else if (dragPlugin.source === 'scrapbook')  {
+      if (!dragComponentProps.gridId) { return false; }
+      let newRow = this.props.createRowWith(this.props.id, dropRowIndex, dragComponentProps.gridId, dragComponentProps.rowIndex, dragComponentProps.index);
+      let rowsOpacity = this.state.rowsOpacity;
+      rowsOpacity[newRow.id] = 0;
+      this.setState({ rowsOpacity: rowsOpacity });
+      if (!this.boundingBox) {
+        this.boundingBox = this.DOMNode.getBoundingClientRect()
+      }
+      let rowDisplay = this.state.rowsDisplay[newRow.id];
+      return { x: this.boundingBox.left + rowDisplay.cellsX[0], y: this.boundingBox.top + rowDisplay.y, scale: rowDisplay.cellsWidth[0] / dragComponentProps.width, time: 200 };
+    } else {
+      return console.error('whuuuut?!');
     }
-    let rowDisplay = this.state.rowsDisplay[newRow.id];
-    return { x: this.boundingBox.left + rowDisplay.cellsX[0], y: this.boundingBox.top + rowDisplay.y, scale: rowDisplay.cellsWidth[0] / dragCellProps.width, time: 200 };
   }
 
   didDrop() {
@@ -174,14 +193,6 @@ export class Grid extends PluggableComponent {
   componentDidMount() {
     super.componentDidMount();
     this.refreshDimensions();
-
-    /*
-    col.addEventListener('dragenter', handleDragEnter, false)
-  col.addEventListener('dragover', handleDragOver, false);
-  col.addEventListener('dragleave', handleDragLeave, false);
-  col.addEventListener('drop', handleDrop, false);
-  col.addEventListener('dragend', handleDragEnd, false);
-    */
   }
 
   _onResize() {
@@ -228,6 +239,7 @@ export class Grid extends PluggableComponent {
                 id={row.id}
                 index={rowIndex}
                 offeringRow
+                moveItem={this.props.moveItem.bind(this)}
                 createNewCellsAt={this.props.createNewCellsAt.bind(this)}
                 computeRowDisplay={this.computeRowDisplay.bind(this)}
                 changeCellRow={this.props.changeCellRow.bind(this)}

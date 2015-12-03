@@ -89,39 +89,59 @@ class GridRow extends PluggableComponent {
       this.boundingBox = this.DOMNode.getBoundingClientRect();
     }
 
-    let dragWithinTheGrid = this.props.gridId === dragComponentProps.gridId;
-    if (this.props.id === dragComponentProps.rowId && dragWithinTheGrid) {
+    if (dragPlugin.source === 'moodboard') {
       let newIndex;
-      if (this.isInFirstHalf) {
-        newIndex = 0;
-      } else if (this.currentDragOverCell < dragComponentProps.index) {
-        newIndex = this.currentDragOverCell + 1;
-      } else {
-        newIndex = this.currentDragOverCell;
-      }
-      cellsOpacity[dragComponentProps.cell.id] = 0.5;
-      if (dragComponentProps.index !== newIndex) {
-        this.props.cellsShift(dragComponentProps.rowIndex, dragComponentProps.index, newIndex);
-      }
-      transform = { x: this.boundingBox.left + this.props.rowDisplay.cellsX[newIndex], y: this.boundingBox.top, scale: 1, time: 200 };
-    } else {
-      let newIndex;
-      if (this.isInFirstHalf) {
-        newIndex = 0;
-      } else {
-        newIndex = this.currentDragOverCell + 1;
-      }
+        if (this.isInFirstHalf) {
+          newIndex = 0;
+        } else {
+          newIndex = this.currentDragOverCell + 1;
+        }
       let previousY = this.transform.y;
-
-      cellsOpacity[dragComponentProps.cell.id] = 0;
-      this.props.changeCellRow(dragComponentProps.gridId, dragComponentProps.rowIndex, dragComponentProps.index, this.props.gridId, this.props.index, newIndex);
+      cellsOpacity[dragComponentProps.id] = 0;
+      this.props.moveItem(
+        { id: dragComponentProps.id, content: dragComponentProps.item.content },
+        { type: 'moodboard', id: dragComponentProps.moodboardId },
+        { type: 'scrapbook', id: this.props.gridId, rowIndex: this.props.index, cellIndex: newIndex }
+      );
       let rowDisplay = this.props.rowDisplay;
       let y = this.boundingBox.top + (this.transform.y - previousY);
-      transform = { y: y, x: this.boundingBox.left + rowDisplay.cellsX[newIndex], scale: rowDisplay.cellsWidth[newIndex] / dragComponentProps.width, time: 200 };
+      transform = { y: y, x: this.boundingBox.left + rowDisplay.cellsX[newIndex], scale: rowDisplay.cellsWidth[newIndex] / dragPlugin.reactComponent.transform.width, time: 200 };
+    } else if (dragPlugin.source === 'scrapbook') {
+      let dragWithinTheGrid = this.props.gridId === dragComponentProps.gridId;
+      if (this.props.id === dragComponentProps.rowId && dragWithinTheGrid) {
+        let newIndex;
+        if (this.isInFirstHalf) {
+          newIndex = 0;
+        } else if (this.currentDragOverCell < dragComponentProps.index) {
+          newIndex = this.currentDragOverCell + 1;
+        } else {
+          newIndex = this.currentDragOverCell;
+        }
+        cellsOpacity[dragComponentProps.cell.id] = 0.5;
+        if (dragComponentProps.index !== newIndex) {
+          this.props.cellsShift(dragComponentProps.rowIndex, dragComponentProps.index, newIndex);
+        }
+        transform = { x: this.boundingBox.left + this.props.rowDisplay.cellsX[newIndex], y: this.boundingBox.top, scale: 1, time: 200 };
+      } else {
+        let newIndex;
+        if (this.isInFirstHalf) {
+          newIndex = 0;
+        } else {
+          newIndex = this.currentDragOverCell + 1;
+        }
+        let previousY = this.transform.y;
+
+        cellsOpacity[dragComponentProps.cell.id] = 0;
+        this.props.changeCellRow(dragComponentProps.gridId, dragComponentProps.rowIndex, dragComponentProps.index, this.props.gridId, this.props.index, newIndex);
+        let rowDisplay = this.props.rowDisplay;
+        let y = this.boundingBox.top + (this.transform.y - previousY);
+        transform = { y: y, x: this.boundingBox.left + rowDisplay.cellsX[newIndex], scale: rowDisplay.cellsWidth[newIndex] / dragComponentProps.width, time: 200 };
+      }
+    } else {
+      return console.error('whuuuut');
     }
 
     this.setState({ cellsOpacity });
-
     return transform;
   }
 
@@ -239,6 +259,7 @@ class GridRow extends PluggableComponent {
                 rowIndex={this.props.index}
                 key={cell.id}
                 index={index}
+                id={cell.id}
                 cell={cell} >
                 <div
                   className='cell'

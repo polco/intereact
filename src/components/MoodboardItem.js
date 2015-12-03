@@ -10,6 +10,7 @@ export class MoodboardItem extends PluggableComponent {
     super(props);
 
     this.dragPlugin = this.addPlugin(new DragPlugin());
+    this.dragPlugin.setSource('moodboard');
     this.transform = this.addPlugin(new TransformPlugin());
   }
 
@@ -17,7 +18,6 @@ export class MoodboardItem extends PluggableComponent {
     this.transform.setPosition(props.item.x, props.item.y);
     this.transform.setDimensions(props.item.width, props.item.height);
     this.transform.setOpacity(props.opacity != undefined ? props.opacity : 1);
-    this.dragPlugin.setSource(props.moodboardId);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -27,17 +27,17 @@ export class MoodboardItem extends PluggableComponent {
   componentDidMount() {
     super.componentDidMount();
     this.updateDisplay(this.props);
-    // this.dragPlugin.setTemplate(this.DOMNode);
   }
 
   render() {
     let content;
     let item = this.props.item;
-    if (item.cell) {
+    if (item.type === 'image') {
+      this.content = item.content;
       let style = {
         height: '100%',
         backgroundSize: '100% 100%',
-        backgroundImage: 'url(' + item.cell.backgroundImage + ')'
+        backgroundImage: 'url(' + item.content.backgroundImage + ')'
       }
       content = (<div className='image' style={style}></div>);
     } else {
