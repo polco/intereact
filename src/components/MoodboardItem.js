@@ -2,6 +2,7 @@ import React from 'react';
 // import ReactDOM from 'react-dom';
 import PluggableComponent from 'components/PluggableComponent';
 import DragPlugin from 'components/DragPlugin';
+import TapPlugin from 'components/TapPlugin';
 import TransformPlugin from 'components/TransformPlugin'
 import './MoodboardItem.less';
 
@@ -10,6 +11,7 @@ export class MoodboardItem extends PluggableComponent {
     super(props);
 
     this.dragPlugin = this.addPlugin(new DragPlugin());
+    this.addPlugin(new TapPlugin());
     this.dragPlugin.setSource('moodboard');
     this.transform = this.addPlugin(new TransformPlugin());
   }
@@ -27,6 +29,10 @@ export class MoodboardItem extends PluggableComponent {
   componentDidMount() {
     super.componentDidMount();
     this.updateDisplay(this.props);
+  }
+
+  onTapStart() {
+    this.props.putInFront(this.props.moodboardId, this.props.id);
   }
 
   render() {

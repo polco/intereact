@@ -10,7 +10,7 @@ export class Moodboard extends PluggableComponent {
   constructor(props) {
     super(props);
 
-    this.state = { itemsOpacity: {} };
+    this.state = { itemsOpacity: {}, itemsOrder: {} };
     this.addPlugin(new DropPlugin());
   }
 
@@ -44,13 +44,17 @@ export class Moodboard extends PluggableComponent {
   }
 
   render() {
-
-    let items = this.props.items;
-
     return (
       <div className='moodboard'>{
-        Object.keys(items).map((itemId) => {
-          return (<MoodboardItem key={itemId} id={itemId} moodboardId={this.props.id} item={items[itemId]} opacity={this.state.itemsOpacity[itemId]} />);
+        this.props.items.map((item) => {
+          return (<MoodboardItem
+            putInFront={this.props.putInFront.bind(this)}
+            key={item.id}
+            id={item.id}
+            moodboardId={this.props.id}
+            item={item}
+            opacity={this.state.itemsOpacity[item.id]} />
+          );
         })
       }</div>
     );

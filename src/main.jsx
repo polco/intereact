@@ -13,7 +13,7 @@ class Main extends React.Component {
     this.state = {
       grid1: [],
       grid2: [],
-      moodboard1: {}
+      moodboard1: []
     };
   }
 
@@ -229,7 +229,12 @@ class Main extends React.Component {
       state[elementProps.gridId] = grid;
     } else if (from.type === 'moodboard') {
       let moodboard = this.state[from.id];
-      delete moodboard[item.id];
+      for (let i = 0; i < moodboard.length; i += 1) {
+        if (moodboard[i].id === item.id) {
+          moodboard.splice(i, 1);
+          break;
+        }
+      }
       state[from.id] = moodboard;
     } else {
       return console.error('what did you do ?! do not know where that stuff is from');
@@ -257,7 +262,7 @@ class Main extends React.Component {
       return row;
     } else if (to.type === 'moodboard') {
       let moodboard = this.state[to.id];
-      moodboard[item.id] = item;
+      moodboard.push(item);
       state[to.id] = moodboard;
       this.setState(state);
     } else {
@@ -269,18 +274,44 @@ class Main extends React.Component {
     let state = {};
 
     if (from.type === 'moodboard') {
-      let moodboad = this.state[from.id];
+      let moodboard = this.state[from.id];
 
-      let item = moodboad[what.itemId];
-      item.x = transform.x;
-      item.y = transform.y;
+      for (let i = 0; i < moodboard.length; i += 1) {
+        if (moodboard[i].id === what.itemId) {
+          let item = moodboard[i];
+          item.x = transform.x;
+          item.y = transform.y;
 
-      state[from.id] = moodboad;
+          moodboard[i] = moodboard[moodboard.length - 1];
+          moodboard[moodboard.length - 1] = item;
+          break;
+        }
+      }
+
+
+      state[from.id] = moodboard;
     } else {
       return console.error('it is not allooooowwweed!');
     }
 
     this.setState(state);
+  }
+
+  putInFront(moodboardId, itemId) {
+    let state = {};
+    let moodboard = this.state[moodboardId];
+
+    for (let i = 0; i < moodboard.length; i += 1) {
+      if (moodboard[i].id === itemId) {
+        let item = moodboard[i];
+        moodboard[i] = moodboard[moodboard.length - 1];
+        moodboard[moodboard.length - 1] = item;
+        break;
+      }
+    }
+
+    state[moodboardId] = moodboard;
+    this.setState(this.state);
   }
 
   render() {
@@ -316,6 +347,7 @@ class Main extends React.Component {
         <div className='moodboard-container'>
           <Moodboard items={this.state.moodboard1}
             id='moodboard1'
+            putInFront={this.putInFront.bind(this)}
             moveItem={this.moveItem.bind(this)}
             transformItem={this.transformItem.bind(this)}
            />
