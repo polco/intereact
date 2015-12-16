@@ -1,8 +1,11 @@
+var webpack = require('webpack');
+
 module.exports = {
     devtool: "source-map",
     debug: true,
-    context: __dirname + '/src',
+    context: __dirname + '/app',
     entry: {
+        assets: '.',
         javascript: './index.jsx',
         html: './index.html'
     },
@@ -26,17 +29,22 @@ module.exports = {
                 loader: "style!css!less"
             },
             {
-                test: /\.html$/,
-                loader: "file?name=[name].[ext]"
+                test: /\.(svg|png|jpg)$/,
+                loader: 'file?name=[name].[ext]'
             },
             {
-                test: /\.png$/,
-                loader: "url-loader?limit=10000&minetype=image/png"
+                test: /\.html$/,
+                loader: "file?name=[name].[ext]",
             }
         ]
     },
+    plugins: [
+        new webpack.ProvidePlugin({
+          'React': 'react'
+        })
+      ],
     resolve: {
-        modulesDirectories: ['node_modules', './src'],
+        modulesDirectories: ['node_modules', './app/src'],
         extensions: ['', '.js', '.jsx', '.less']
     }
-}
+};

@@ -17,15 +17,12 @@ export class Moodboard extends PluggableComponent {
   willDrop(dragPlugin, x, y) {
     let props = dragPlugin.reactComponent.props;
     let boundingRect = this.DOMNode.getBoundingClientRect();
+    let newX = x - boundingRect.left;
+    let newY = y - boundingRect.top;
 
     if (dragPlugin.source === 'moodboard') {
-      let transform = dragPlugin.reactComponent.transform;
-      let newX = x - boundingRect.left - transform.width / 2;
-      let newY = y - boundingRect.top - transform.height / 2;
       this.props.transformItem({ type: 'moodboard', id: this.props.id }, { itemId: props.id }, { x: newX, y: newY });
     } else if (dragPlugin.source === 'scrapbook') {
-      let newX = x - boundingRect.left - props.width / 2;
-      let newY = y - boundingRect.top - props.height / 2;
       this.props.moveItem({ x: newX, y: newY, width: props.width, height: props.height, type: 'image', content: props.cell, id: props.cell.id }, { type: 'scrapbook', element: dragPlugin.reactComponent }, { type: 'moodboard', id: this.props.id });
       let itemsOpacity = this.state.itemsOpacity;
       itemsOpacity[props.cell.id] = 0;

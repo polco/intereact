@@ -10,6 +10,7 @@ class TransformPlugin  {
     this.width = 0;
     this.height = 0;
     this.speed = 1.7;
+    this.rotation = 0;
   }
 
   setDimensions(width, height) {
@@ -30,12 +31,6 @@ class TransformPlugin  {
   setHeight(height) {
     this.style.height = height + 'px';
     this.height = height;
-  }
-
-  setPosition(x, y) {
-    this.x = x;
-    this.y = y;
-    this.style.transform = 'translate3d(' + (x + this.offsetX) + 'px,' + (y + this.offsetY) + 'px,0) scale(' + this.scale + ')';
   }
 
   setPositionOffset(offsetX, offsetY) {
@@ -62,9 +57,24 @@ class TransformPlugin  {
     });
   }
 
+  updateTransformMatrix() {
+    this.style.transform = 'translate3d(' + (this.x + this.offsetX) + 'px,' + (this.y + this.offsetY) + 'px,0) scale(' + this.scale + ') rotate(' + this.rotation + 'rad)';
+  }
+
+  setPosition(x, y) {
+    this.x = x;
+    this.y = y;
+    this.updateTransformMatrix();
+  }
+
   setScale(scale) {
     this.scale = scale;
-    this.style.transform = 'translate3d(' + (this.x + this.offsetX) + 'px,' + (this.y + this.offsetY) + 'px,0) scale(' + scale + ')';
+    this.updateTransformMatrix();
+  }
+
+  setRotation(rotation) {
+    this.rotation = rotation;
+    this.updateTransformMatrix();
   }
 
   scaleTo(scale, time) {
@@ -86,15 +96,19 @@ class TransformPlugin  {
     });
   }
 
-  transform(x, y, scale) {
-    this.setPosition(x, y);
-    this.setScale(scale);
+  transform(x, y, scale, rotation) {
+    this.x = x;
+    this.y = y;
+    this.scale = scale;
+    this.rotation = rotation;
+    this.updateTransformMatrix();
   }
 
   transformTo(transform) {
     let x = transform.hasOwnProperty('x') ? transform.x : this.x;
     let y = transform.hasOwnProperty('y') ? transform.y : this.y;
     let scale = transform.hasOwnProperty('scale') ? transform.scale : this.scale;
+    let rotation = transform.hasOwnProperty('rotation') ? transform.rotation : this.rotation;
 
     let time = transform.time;
     if (!time) {
@@ -110,7 +124,7 @@ class TransformPlugin  {
     window.clearTimeout(this.transformToTimeout);
 
     this.style.transition = 'transform ' + time + 'ms linear';
-    this.transform(x, y, scale);
+    this.transform(x, y, scale, rotation);
 
     return new Promise((resolve) => {
       this.transformToTimeout = window.setTimeout(() => {
@@ -131,6 +145,11 @@ class TransformPlugin  {
 
   hide() {
     this.style.display = 'none';
+  }
+
+  setTarget(DOMNode) {
+    this.DOMNode = DOMNode;
+    this.style= DOMNode.style;
   }
 
   componentDidMount(DOMNode, reactComponent) {

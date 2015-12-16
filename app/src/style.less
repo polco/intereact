@@ -1,0 +1,114 @@
+div {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+  -webkit-user-select: none;
+  user-select: none;
+  overflow: hidden;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.main {
+  display: flex;
+  height: 100%;
+  justify-content: space-around;
+
+  .folder {
+    width: 160px;
+    background-size: 100% auto;
+    background-image: url('../assets/folders.jpg');
+  }
+
+  .grid1, .grid2, .moodboard-container {
+    flex: 1 0 0;
+    margin: 5px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .moodboard-container {
+    flex: 2 0 0;
+  }
+
+  .moodboard {
+    flex: 1 0 0;
+  }
+
+  .header {
+    padding: 5px 15px;
+    color: #959585;
+    background: rgba(26,26,26,1);
+    background: -moz-linear-gradient(top, rgba(26,26,26,1) 0%, rgba(60,58,58,1) 54%, rgba(60,58,58,1) 100%);
+    background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(26,26,26,1)), color-stop(54%, rgba(60,58,58,1)), color-stop(100%, rgba(60,58,58,1)));
+    background: -webkit-linear-gradient(top, rgba(26,26,26,1) 0%, rgba(60,58,58,1) 54%, rgba(60,58,58,1) 100%);
+  }
+}
+
+.intereact {
+  position: absolute;
+  top: 0;
+  width: 0;
+  left: 0;
+  height: 0;
+
+  .sensu {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .menu-bar {
+      background-color: black;
+    }
+
+    .main {
+      flex: 1 0 0;
+      background-color: rgba(0,0,0,0.9);
+
+      input {
+        display: none;
+      }
+    }
+  }
+}
+
+.intereact, .scroller {
+  width: 100%;
+  height: 100%;
+}
+
+.scroller {
+  flex: 1 0 0;
+}
+
+.grid-system {
+  // position: absolute;
+  // overflow: hidden;
+  flex: 1 0 0;
+  background-color: #2B2929;
+
+  display: flex;
+  flex-direction: column;
+
+  .grid-container {
+    flex: 1 0 0;
+  }
+}
+
+.cell {
+  background-color: #ccc;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #2B2929;
+}
+

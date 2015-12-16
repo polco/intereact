@@ -12,10 +12,19 @@ class DragContext extends PluggableComponent {
   constructor(props) {
     super(props);
     this.transform = this.addPlugin(new TransformPlugin());
+    this.state = { template: null };
+  }
+
+  setTemplate(template) {
+    this.setState({ template });
   }
 
   render() {
-    return (<div>{this.props.current}</div>);
+    return (
+      <div className='drag-wrapper'>
+        {this.state.template}
+      </div>
+    );
   }
 }
 
@@ -37,6 +46,8 @@ class DragManager extends EventEmitter {
         this.dragContext.transform.hide();
       });
     }, false);
+
+    this.dragContext = ReactDOM.render(React.createElement(DragContext), this.dragContainerNode);
   }
 
   _reset() {
@@ -77,10 +88,17 @@ class DragManager extends EventEmitter {
     let elementBox = dragPlugin.DOMNode.getBoundingClientRect();
     this.initialPosition = { x: elementBox.left, y: elementBox.top };
 
-    this.dragContext = ReactDOM.render(React.createElement(DragContext, { current: dragPlugin.template }), this.dragContainerNode);
+    let transform = dragPlugin.reactComponent.transform || {
+      rotation: 0,
+      width: elementBox.width,
+      height: elementBox.height,
+    };
     this.dragContext.transform.setPosition(elementBox.left, elementBox.top);
-    this.dragContext.transform.setDimensions(elementBox.width, elementBox.height);
-    this.dragContext.transform.setPositionOffset(-elementBox.width/2, -elementBox.height/2);
+    this.dragContext.transform.setRotation(transform.rotation);
+    this.dragContext.transform.setDimensions(transform.width, transform.height);
+    this.dragContext.transform.setPositionOffset(elementBox.left - x, elementBox.top - y);
+    this.dragContext.setTemplate(dragPlugin.template);
+
     this.dragContext.transform.show().then(() => {
       return this.dragContext.transform.transformTo({ x: x, y: y, scale: scale, time: time });
     });
@@ -88,27 +106,28 @@ class DragManager extends EventEmitter {
   }
 
   setDropTarget(dropPlugin) {
-    let dropTransform = dropPlugin.willDrop(this.dragPlugin, this.dragContext.transform.x, this.dragContext.transform.y);
+    let transform = this.dragContext.transform;
+    let x = transform.x + transform.offsetX;
+    let y = transform.y + transform.offsetY;
+    let dropTransform = dropPlugin.willDrop(this.dragPlugin, x, y);
+
     if (!dropTransform) {
-      let x, y;
       if (dropPlugin.matchTarget) {
         let elementBox = dropPlugin.DOMNode.getBoundingClientRect();
-        this.dragContext.transform.setDimensions(elementBox.width, elementBox.height);
-        this.dragContext.transform.setPositionOffset(0, 0);
+        transform.setDimensions(elementBox.width, elementBox.height);
         dropTransform = { x: elementBox.left, y: elementBox.top, scale: 1 };
       } else {
-        dropTransform = { scale: 1, time: this.dragPlugin.transitionTime }
+        dropTransform = { x: x, y: y,  scale: 1, time: this.dragPlugin.transitionTime }
       }
-    } else {
-      this.dragContext.transform.setPositionOffset(0, 0);
     }
+
+    transform.setPositionOffset(0, 0);
 
     this.dragContext.transform.transformTo(dropTransform).then(() => {
       this.dragContext.transform.hide();
-      this.dragContext.transform.setPositionOffset(0, 0);
       this.dragPlugin.dragEnd();
       this.emit('dragEnd');
-      dropPlugin.didDrop(this.dragPlugin, this.dragContext.transform.x, this.dragContext.transform.y);
+      dropPlugin.didDrop(this.dragPlugin, x, y);
     });
   }
 }

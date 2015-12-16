@@ -1,6 +1,7 @@
 import React from 'react';
 import Grid from 'components/Grid';
 import Moodboard from 'components/Moodboard';
+import MenuBar from 'components/MenuBar';
 import Promise from 'bluebird';
 import './style.less';
 
@@ -308,8 +309,6 @@ class Main extends React.Component {
         item.height = height;
         item.x = x;
         item.y = y;
-        moodboard[i] = moodboard[moodboard.length - 1];
-        moodboard[moodboard.length - 1] = item;
         break;
       }
     }
@@ -324,9 +323,8 @@ class Main extends React.Component {
 
     for (let i = 0; i < moodboard.length; i += 1) {
       if (moodboard[i].id === itemId) {
-        let item = moodboard[i];
-        moodboard[i] = moodboard[moodboard.length - 1];
-        moodboard[moodboard.length - 1] = item;
+        let item = moodboard.splice(i, 1)[0];
+        moodboard.push(item);
         break;
       }
     }
@@ -335,44 +333,57 @@ class Main extends React.Component {
     this.setState(this.state);
   }
 
+  openFileSelect(gridId) {
+    this.refs['input-' + gridId].click();
+  }
+
   render() {
     this.grids = [];
     return (
-      <div className='main'>
-        <div className='grid grid1'>
-          <input type='file' accept="image/*"  name='uploads[]' multiple onChange={(event) => this.selecteFiles('grid1', event)} />
-          <Grid rows={this.state.grid1}
-            id='grid1'
-            key='grid1'
-            moveItem={this.moveItem.bind(this)}
-            createNewCellsAt={this.createNewCellsAt.bind(this)}
-            createNewCells={this.createNewCells.bind(this)}
-            createRowWith={this.createRowWith.bind(this)}
-            cellsShift={(rowIndex, cell1Index, cell2Index) => this.cellsShift('grid1', rowIndex, cell1Index, cell2Index)}
-            changeCellRow={this.changeCellRow.bind(this)} />
-        </div>
+      <div className='sensu'>
+        <MenuBar />
+        <div className='main'>
+          <div className='folder'></div>
+          <div className='grid grid1'>
+            <div className='header'>Scrapbook 1<div className='close-btn'></div></div>
+            <Grid rows={this.state.grid1}
+              onTap={() => { this.openFileSelect('grid1')}}
+              id='grid1'
+              key='grid1'
+              moveItem={this.moveItem.bind(this)}
+              createNewCellsAt={this.createNewCellsAt.bind(this)}
+              createNewCells={this.createNewCells.bind(this)}
+              createRowWith={this.createRowWith.bind(this)}
+              cellsShift={(rowIndex, cell1Index, cell2Index) => this.cellsShift('grid1', rowIndex, cell1Index, cell2Index)}
+              changeCellRow={this.changeCellRow.bind(this)} />
+            <input ref='input-grid1' type='file' accept="image/*"  name='uploads[]' multiple onChange={(event) => this.selecteFiles('grid1', event)} />
+          </div>
 
-        <div className='grid grid2'>
-          <input type='file' accept="image/*" name='uploads[]' multiple onChange={(event) => this.selecteFiles('grid2', event)} />
-          <Grid rows={this.state.grid2}
-            id='grid2'
-            key='grid2'
-            moveItem={this.moveItem.bind(this)}
-            createNewCellsAt={this.createNewCellsAt.bind(this)}
-            createNewCells={this.createNewCells.bind(this)}
-            createRowWith={this.createRowWith.bind(this)}
-            cellsShift={(rowIndex, cell1Index, cell2Index) => this.cellsShift('grid2', rowIndex, cell1Index, cell2Index)}
-            changeCellRow={this.changeCellRow.bind(this)} />
-        </div>
+          <div className='grid grid2'>
+            <div className='header'>Scrapbook 2<div className='close-btn'></div></div>
+            <Grid rows={this.state.grid2}
+              id='grid2'
+              key='grid2'
+              onTap={() => { this.openFileSelect('grid2')}}
+              moveItem={this.moveItem.bind(this)}
+              createNewCellsAt={this.createNewCellsAt.bind(this)}
+              createNewCells={this.createNewCells.bind(this)}
+              createRowWith={this.createRowWith.bind(this)}
+              cellsShift={(rowIndex, cell1Index, cell2Index) => this.cellsShift('grid2', rowIndex, cell1Index, cell2Index)}
+              changeCellRow={this.changeCellRow.bind(this)} />
+            <input ref='input-grid2' type='file' accept="image/*" name='uploads[]' multiple onChange={(event) => this.selecteFiles('grid2', event)} />
+          </div>
 
-        <div className='moodboard-container'>
-          <Moodboard items={this.state.moodboard1}
-            id='moodboard1'
-            putInFront={this.putInFront.bind(this)}
-            updateItemDimensions={this.updateItemDimensions.bind(this)}
-            moveItem={this.moveItem.bind(this)}
-            transformItem={this.transformItem.bind(this)}
-           />
+          <div className='moodboard-container'>
+            <div className='header'>Moodboard<div className='close-btn'></div></div>
+            <Moodboard items={this.state.moodboard1}
+              id='moodboard1'
+              putInFront={this.putInFront.bind(this)}
+              updateItemDimensions={this.updateItemDimensions.bind(this)}
+              moveItem={this.moveItem.bind(this)}
+              transformItem={this.transformItem.bind(this)}
+             />
+          </div>
         </div>
       </div>
     )

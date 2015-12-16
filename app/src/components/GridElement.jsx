@@ -14,32 +14,8 @@ class GridElement extends PluggableComponent {
     this.opened = false;
   }
 
-  onLongTap() {
-    if (!this.opened) {
-      this.open();
-    }
-  }
   onTap() {
-    if (this.opened) {
-      this.close();
-    } else {
-      this.DOMNode.classList.toggle('selected');
-    }
-  }
-
-  open() {
-    if (this.opened) { return; }
-    this.transform.style.zIndex = 1;
-    this.transform.scaleTo(1.5, 100);
-    this.opened = true;
-  }
-
-  close() {
-    if (!this.opened) { return; }
-    this.transform.scaleTo(1, 100).then(() => {
-      this.transform.style.zIndex = 0;
-    });
-    this.opened = false;
+    this.DOMNode.classList.toggle('selected');
   }
 
   onDragStart() {

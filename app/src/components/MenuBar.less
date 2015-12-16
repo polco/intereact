@@ -1,0 +1,44 @@
+.menu-bar {
+	color: #959585;
+	height: 50px;
+
+	.logo {
+		font-size: 20px;
+		width: 150px;
+		padding: 0 15px;
+		display: inline-block;
+		vertical-align: middle;
+		line-height: 50px;
+	}
+
+	.link {
+		text-transform: uppercase;
+		position: relative;
+		text-decoration: none;
+		padding: 0px 15px;
+		display: inline-block;
+		vertical-align: middle;
+		line-height: 50px;
+		font-weight: bold;
+
+		&:hover {
+			color: #6e6e60;
+		}
+
+		&.active {
+			font-weight: 700;
+			color: #959585;
+		}
+	}
+
+	.link + .link:before {
+		content: "";
+		position: absolute;
+		left: 0;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 1px;
+		background: #616158;
+		height: 18px;
+	}
+}

@@ -1,5 +1,5 @@
 import ReactDOM from 'react-dom';
-import Main from './main.jsx';
+import Main from './src/main.jsx';
 
 let intereactNode = document.createElement('div');
 intereactNode.classList.add('intereact');

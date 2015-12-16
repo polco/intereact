@@ -4,6 +4,7 @@ import GridRow from 'components/GridRow';
 import Scroller from 'components/Scroller';
 import PluggableComponent from 'components/PluggableComponent';
 import DropPlugin from 'components/DropPlugin';
+import TapPlugin from 'components/TapPlugin';
 // import HoverPlugin from 'components/HoverPlugin';
 import './Grid.less';
 
@@ -19,6 +20,7 @@ export class Grid extends PluggableComponent {
     this.newRowIndex = null;
 
     this.addPlugin(new DropPlugin());
+    this.addPlugin(new TapPlugin());
     // this.addPlugin(new HoverPlugin());
   }
 

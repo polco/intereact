@@ -17,7 +17,7 @@ class TapPlugin extends EventEmitter {
 
   tapStart(coords) { this.reactComponent.onTapStart(); this.emit('tapStart', coords); }
   tapEnd() { this.reactComponent.onTapEnd(); this.emit('tapEnd'); }
-  tap() { this.reactComponent.onTap(); this.emit('tap'); }
+  tap() { this.reactComponent.onTap(); if (this.reactComponent.props.onTap) { this.reactComponent.props.onTap(); } }
   longTap(coords) { if (this.reactComponent.onLongTap) {
       this.reactComponent.onLongTap();
     }
