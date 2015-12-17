@@ -25,9 +25,10 @@
     "webpack-dev-server": "^1.12.1"
   },
   "dependencies": {
-    "ip": "^1.1.0",
     "react": "^0.14.2",
-    "react-dom": "^0.14.2"
+    "react-dom": "^0.14.2",
+    "spur-tap-lock": "git+https://github.com/spur/tap-lock.git#master",
+    "spur-taps": "git+https://github.com/spur/taps.git#master"
   },
   "scripts": {
     "dev": "webpack-dev-server --progress --colors --port 8090 --host 0.0.0.0",

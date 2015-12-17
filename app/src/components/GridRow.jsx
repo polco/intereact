@@ -1,6 +1,6 @@
 import React from 'react';
 import PluggableComponent from 'components/PluggableComponent';
-import { tapEvents, getTap } from 'components/tapHelper';
+import { tapEvents, getTap } from 'spur-taps';
 import DropPlugin from 'components/DropPlugin';
 import TransformPlugin from 'components/TransformPlugin';
 import GridElement from 'components/GridElement';

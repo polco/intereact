@@ -1,4 +1,4 @@
-import { getTap, tapEvents, currentTap } from 'components/tapHelper';
+import { getTap, tapEvents, currentTap } from 'spur-taps';
 import { EventEmitter } from 'events';
 
 var isListening;

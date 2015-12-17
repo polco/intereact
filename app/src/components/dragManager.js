@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { tapEvents, getTap } from 'components/tapHelper';
+import { tapEvents, getTap } from 'spur-taps';
 import { startHovering } from 'components/hoverManager';
 import PluggableComponent from 'components/PluggableComponent';
 import TransformPlugin from 'components/TransformPlugin';

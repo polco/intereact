@@ -1,5 +1,5 @@
-import { tapEvents, getTap } from 'components/tapHelper';
-import interactionHandler from 'components/interactionHandler';
+import { tapEvents, getTap } from 'spur-taps';
+import interactionHandler from 'spur-tap-lock';
 import dragManager from 'components/dragManager';
 
 const DRAG_THRESHOLD = 8;

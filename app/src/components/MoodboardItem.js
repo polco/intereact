@@ -4,8 +4,8 @@ import PluggableComponent from 'components/PluggableComponent';
 import DragPlugin from 'components/DragPlugin';
 import TapPlugin from 'components/TapPlugin';
 import TransformPlugin from 'components/TransformPlugin';
-import { tapEvents, getTap, getMouseTap } from 'components/tapHelper';
-import interactionHandler from 'components/interactionHandler';
+import { tapEvents, getTap, getMouseTap } from 'spur-taps';
+import interactionHandler from 'spur-tap-lock';
 import './MoodboardItem.less';
 
 const PINCH_TRESHOLD = 8 * 8;

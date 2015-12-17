@@ -18,30 +18,6 @@ class GridElement extends PluggableComponent {
     this.DOMNode.classList.toggle('selected');
   }
 
-  onDragStart() {
-    this.close();
-  }
-
-  onTapStart() {
-    this.DOMNode.classList.add('pressed');
-  }
-
-  onTapEnd() {
-    this.DOMNode.classList.remove('pressed');
-  }
-
-  onDragEnter() {
-    this.DOMNode.classList.add('hover');
-  }
-
-  onDragLeave() {
-    this.DOMNode.classList.remove('hover');
-  }
-
-  onHoverEnd() {
-    this.DOMNode.classList.remove('hover');
-  }
-
   updateComponentDisplay(props) {
     this.transform.setOpacity(props.opacity != undefined ? props.opacity : 1);
     this.transform.setPosition(props.x, 0);

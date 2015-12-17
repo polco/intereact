@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { tapEvents, getTap } from 'components/tapHelper';
-import interactionHandler from 'components/interactionHandler';
+import { tapEvents, getTap } from 'spur-taps';
+import interactionHandler from 'spur-tap-lock';
 import TINA from 'tina';
 import './Scroller.less';
 
