@@ -1,4 +1,4 @@
-import './List.less';
+import 'styles/List.less';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import IScroll from 'iscroll/build/iscroll-probe'

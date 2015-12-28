@@ -1,17 +1,14 @@
 import React from 'react';
-// import ReactDOM from 'react-dom';
-import PluggableComponent from 'components/PluggableComponent';
-import DropPlugin from 'components/DropPlugin';
+import DropPlugin from 'plugins/DropPlugin';
+import plug from 'plugins/plug';
 import MoodboardItem from 'components/MoodboardItem';
-import './Moodboard.less';
+import 'styles/Moodboard.less';
 
-
-export class Moodboard extends PluggableComponent {
+export class Moodboard extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = { itemsOpacity: {}, itemsOrder: {} };
-    this.addPlugin(new DropPlugin());
   }
 
   willDrop(dragPlugin, x, y) {
@@ -59,4 +56,4 @@ export class Moodboard extends PluggableComponent {
   }
 }
 
-export default Moodboard;
+export default plug({ drop: DropPlugin }, Moodboard);

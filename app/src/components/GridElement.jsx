@@ -1,44 +1,43 @@
-import TapPlugin from 'components/TapPlugin';
-import DragPlugin from 'components/DragPlugin';
-import PluggableComponent from 'components/PluggableComponent';
-import TransformPlugin from 'components/TransformPlugin';
+import React from 'react';
+import ButtonPlugin from 'spur-button-plugin';
+import classNames from 'classnames';
+import DragPlugin from 'plugins/DragPlugin';
+import TransformPlugin from 'plugins/TransformPlugin';
+import plug from 'plugins/plug';
 
-class GridElement extends PluggableComponent {
+class GridElement extends React.Component {
   constructor(props) {
     super(props);
-
-    this.addPlugin(new TapPlugin());
-    this.dragPlugin = this.addPlugin(new DragPlugin({ template: this.props.children, source: 'scrapbook' }));
-    this.transform = this.addPlugin(new TransformPlugin());
-
-    this.opened = false;
+    this.state = { transformStyle: {}, selected: false };
   }
 
   onTap() {
-    this.DOMNode.classList.toggle('selected');
+    this.setState({ selected: true });
   }
 
   updateComponentDisplay(props) {
-    this.transform.setOpacity(props.opacity != undefined ? props.opacity : 1);
-    this.transform.setPosition(props.x, 0);
-    this.transform.setDimensions(props.width, props.height);
+    props.transform.setOpacity(props.opacity != undefined ? props.opacity : 1);
+    props.transform.setPosition(props.x, 0);
+    props.transform.setDimensions(props.width, props.height);
+  }
+
+  componentWillMount() {
+    this.props.drag.setTemplate(this.props.children);
+    this.props.drag.setSource('scrapbook');
   }
 
   componentDidMount() {
-    super.componentDidMount();
     this.updateComponentDisplay(this.props);
   }
 
   componentWillReceiveProps(nextProps) {
     this.updateComponentDisplay(nextProps);
-    window.setTimeout(() => {
-      this.DOMNode.style.transition = 'transform 200ms linear';
-    }, 0);
+    this.props.transform.setTransition('transform 200ms linear');
   }
 
   render() {
-    return (<div className='grid-element'>{this.props.children}</div>);
+    return (<div className={classNames('grid-element',  { selected: this.state.selected })} style={this.state.transformStyle}>{this.props.children}</div>);
   }
 }
 
-export default GridElement;
+export default plug({ transform: TransformPlugin, button: ButtonPlugin, drag: DragPlugin }, GridElement);

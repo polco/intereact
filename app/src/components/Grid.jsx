@@ -2,26 +2,21 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import GridRow from 'components/GridRow';
 import Scroller from 'components/Scroller';
-import PluggableComponent from 'components/PluggableComponent';
-import DropPlugin from 'components/DropPlugin';
-import TapPlugin from 'components/TapPlugin';
-// import HoverPlugin from 'components/HoverPlugin';
-import './Grid.less';
+import DropPlugin from 'plugins/DropPlugin';
+import ButtonPlugin from 'spur-button-plugin';
+import plug from 'plugins/plug';
+import 'styles/Grid.less';
 
 const NEW_ROW_TIMEOUT = 400;
 const MAX_CELL_HEIGHT_CONTAINER_FACTOR = 0.25;
 const ROW_SHIFT_FACTOR = 0.1;
 
-export class Grid extends PluggableComponent {
-  constructor(props) {
-    super(props);
+class Grid extends React.Component {
+  constructor(props, context) {
+    super(props, context);
     this.state = { rowsDisplay: {}, newRowIndex: null, scrollerHeight: 0, rowsOpacity: {} };
     this.newRowTimer = null;
     this.newRowIndex = null;
-
-    this.addPlugin(new DropPlugin());
-    this.addPlugin(new TapPlugin());
-    // this.addPlugin(new HoverPlugin());
   }
 
   offerNewRow(rowIndex) {
@@ -193,7 +188,7 @@ export class Grid extends PluggableComponent {
   }
 
   componentDidMount() {
-    super.componentDidMount();
+    this.DOMNode = ReactDOM.findDOMNode(this);
     this.refreshDimensions();
   }
 
@@ -211,7 +206,6 @@ export class Grid extends PluggableComponent {
   }
 
   componentWillUnmount() {
-    super.componentWillUnmount();
     window.removeEventListener('resize', this._resizeBound);
     this._resizeBound = null;
   }
@@ -259,4 +253,4 @@ export class Grid extends PluggableComponent {
   }
 }
 
-export default Grid;
+export default plug({ button: ButtonPlugin, drop: DropPlugin }, Grid);

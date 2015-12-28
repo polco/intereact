@@ -3,7 +3,7 @@ import Grid from 'components/Grid';
 import Moodboard from 'components/Moodboard';
 import MenuBar from 'components/MenuBar';
 import Promise from 'bluebird';
-import './style.less';
+import 'styles/main.less';
 
 var URL = window.URL || window.webkitURL;
 

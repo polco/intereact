@@ -1,14 +1,15 @@
 var webpack = require('webpack');
+var ip = require('ip');
 
 module.exports = {
     devtool: "source-map",
     debug: true,
     context: __dirname + '/app',
-    entry: {
-        assets: '.',
-        javascript: './index.jsx',
-        html: './index.html'
-    },
+    entry: [
+        'webpack-dev-server/client?http://' + ip.address() + ':8090',
+        './index.html',
+        './index.jsx'
+    ],
     output: {
         filename: 'bundle.js',
         path: __dirname + '/dist'
@@ -17,6 +18,7 @@ module.exports = {
         loaders: [
             {
                 test: /\.jsx?$/,
+                exclude: /node_modules/,
                 loader: 'babel-loader',
                 query: {
                     cacheDirectory: true,

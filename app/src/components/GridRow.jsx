@@ -1,23 +1,21 @@
 import React from 'react';
-import PluggableComponent from 'components/PluggableComponent';
+import ReactDOM from 'react-dom';
 import { tapEvents, getTap } from 'spur-taps';
-import DropPlugin from 'components/DropPlugin';
-import TransformPlugin from 'components/TransformPlugin';
+import DropPlugin from 'plugins/DropPlugin';
+import TransformPlugin from 'plugins/TransformPlugin';
+import plug from 'plugins/plug';
 import GridElement from 'components/GridElement';
-import './GridRow.less';
+import 'styles/GridRow.less';
 
 
 const NEW_ROW_GAP = 20;
 const CELL_SHIFT_FACTOR = 0.1;
 
-class GridRow extends PluggableComponent {
+class GridRow extends React.Component {
   constructor(props) {
     super(props);
 
-    this.addPlugin(new DropPlugin());
-    this.transform = this.addPlugin(new TransformPlugin());
-
-    this.state = { cellsX: [], cellsOpacity: {} };
+    this.state = { cellsX: [], cellsOpacity: {}, transformStyle: {} };
     this.props = { rowDisplay: { cellsX: [], cellsWidth: [], height: 0 } }
     this.cellsIndex = {};
     this.currentDragOverCell = -1;
@@ -96,7 +94,7 @@ class GridRow extends PluggableComponent {
         } else {
           newIndex = this.currentDragOverCell + 1;
         }
-      let previousY = this.transform.y;
+      let previousY = this.props.transform.y;
       cellsOpacity[dragComponentProps.id] = 0;
       this.props.moveItem(
         { id: dragComponentProps.id, content: dragComponentProps.item.content },
@@ -104,7 +102,7 @@ class GridRow extends PluggableComponent {
         { type: 'scrapbook', id: this.props.gridId, rowIndex: this.props.index, cellIndex: newIndex }
       );
       let rowDisplay = this.props.rowDisplay;
-      let y = this.boundingBox.top + (this.transform.y - previousY);
+      let y = this.boundingBox.top + (this.props.transform.y - previousY);
       transform = { y: y, x: this.boundingBox.left + rowDisplay.cellsX[newIndex], scale: rowDisplay.cellsWidth[newIndex] / dragPlugin.reactComponent.transform.width, time: 200 };
     } else if (dragPlugin.source === 'scrapbook') {
       let dragWithinTheGrid = this.props.gridId === dragComponentProps.gridId;
@@ -129,12 +127,12 @@ class GridRow extends PluggableComponent {
         } else {
           newIndex = this.currentDragOverCell + 1;
         }
-        let previousY = this.transform.y;
+        let previousY = this.props.transform.y;
 
         cellsOpacity[dragComponentProps.cell.id] = 0;
         this.props.changeCellRow(dragComponentProps.gridId, dragComponentProps.rowIndex, dragComponentProps.index, this.props.gridId, this.props.index, newIndex);
         let rowDisplay = this.props.rowDisplay;
-        let y = this.boundingBox.top + (this.transform.y - previousY);
+        let y = this.boundingBox.top + (this.props.transform.y - previousY);
         transform = { y: y, x: this.boundingBox.left + rowDisplay.cellsX[newIndex], scale: rowDisplay.cellsWidth[newIndex] / dragComponentProps.width, time: 200 };
       }
     } else {
@@ -207,16 +205,16 @@ class GridRow extends PluggableComponent {
   }
 
   updateDisplay(props) {
-    this.transform.setPosition(0, props.rowDisplay.y);
-    this.transform.setHeight(props.rowDisplay.height);
+    this.props.transform.setPosition(0, props.rowDisplay.y);
+    this.props.transform.setHeight(props.rowDisplay.height);
     this.resetCellsPosition(props.rowDisplay.cellsX);
-    this.transform.setOpacity(props.opacity !== undefined ? props.opacity : 1);
+    this.props.transform.setOpacity(props.opacity !== undefined ? props.opacity : 1);
   }
 
   componentWillReceiveProps(nextProps) {
     this.updateCellsIndex(nextProps.cells);
     this.updateDisplay(nextProps);
-    this.DOMNode.style.transition = 'transform 200ms linear';
+    this.props.transform.setTransition('transform 200ms linear');
   }
 
   componentWillMount() {
@@ -224,18 +222,14 @@ class GridRow extends PluggableComponent {
   }
 
   componentDidMount() {
-    super.componentDidMount();
-    // let rowDisplay = this.props.rowDisplay || { y: 0, height: 0, cellsX: [], cellsWidth: [] };
-    // this.transform.setPosition(0, rowDisplay.y);
-    // this.transform.setHeight(rowDisplay.height);
-    // this.resetCellsPosition(rowDisplay.cellsX);
+    this.DOMNode = ReactDOM.findDOMNode(this);
     this.updateDisplay(this.props);
   }
 
   render() {
     let rowDisplay = this.props.rowDisplay;
     return (
-      <div className='grid-row'>
+      <div className='grid-row' style={this.state.transformStyle}>
         {
           this.props.cells.map((cell, cellIndex) => {
             let index = this.cellsIndex[cell.id];
@@ -276,4 +270,4 @@ class GridRow extends PluggableComponent {
   }
 }
 
-export default GridRow;
+export default plug({ transform: TransformPlugin, drop: DropPlugin }, GridRow);

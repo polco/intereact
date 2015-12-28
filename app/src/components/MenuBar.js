@@ -1,4 +1,4 @@
-import './MenuBar.less';
+import 'styles/MenuBar.less';
 import React from 'react';
 
 export default class MenuBar extends React.Component {

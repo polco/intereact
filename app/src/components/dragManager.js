@@ -1,32 +1,29 @@
 import { EventEmitter } from 'events';
 import { tapEvents, getTap } from 'spur-taps';
 import { startHovering } from 'components/hoverManager';
-import PluggableComponent from 'components/PluggableComponent';
-import TransformPlugin from 'components/TransformPlugin';
+import plug from 'plugins/plug';
+import TransformPlugin from 'plugins/TransformPlugin';
 import ReactDOM from 'react-dom';
 import React from 'react';
 import Promise from 'bluebird';
-import './dragManager.less';
+import 'styles/dragManager.less';
 
-class DragContext extends PluggableComponent {
+class DragContext extends React.Component {
   constructor(props) {
     super(props);
-    this.transform = this.addPlugin(new TransformPlugin());
     this.state = { template: null };
-  }
-
-  setTemplate(template) {
-    this.setState({ template });
   }
 
   render() {
     return (
       <div className='drag-wrapper'>
-        {this.state.template}
+        {this.props.template}
       </div>
     );
   }
 }
+
+let DragElement = plug({ transform: TransformPlugin }, DragContext);
 
 class DragManager extends EventEmitter {
   constructor() {
@@ -36,18 +33,19 @@ class DragManager extends EventEmitter {
     document.body.appendChild(dragContainer);
     this.dragContainerNode = dragContainer;
 
-    document.addEventListener('intereactdrop', () => {
+    document.addEventListener('spurdrop', () => {
       console.log('drop not caught!')
       let pos = this.initialPosition;
-      this.dragContext.transform.setPositionOffset(0, 0);
-      this.dragContext.transform.transformTo({ x: pos.x, y: pos.y, scale: 1 }).then(() => {
+      this.dragTransform.setPositionOffset(0, 0);
+      this.dragTransform.transformTo({ x: pos.x, y: pos.y, scale: 1 }).then(() => {
         this.dragPlugin.dragEnd();
         this.emit('dragEnd');
-        this.dragContext.transform.hide();
+        this.dragTransform.hide();
       });
     }, false);
 
-    this.dragContext = ReactDOM.render(React.createElement(DragContext), this.dragContainerNode);
+    this.dragContext = ReactDOM.render(React.createElement(DragElement), this.dragContainerNode);
+    this.dragTransform = this.dragContext.plugins.transform;
   }
 
   _reset() {
@@ -59,19 +57,19 @@ class DragManager extends EventEmitter {
 
   _tapMove(e) {
     let tap = getTap(e);
-    if (this.dragContext.transform.isTransitioning) {
-      this.dragContext.transform.transformTo({ x: tap.x, y: tap.y, scale: this.dragPlugin.dragScale, time: 50 });
+    if (this.dragTransform.isTransitioning) {
+      this.dragTransform.transformTo({ x: tap.x, y: tap.y, scale: this.dragPlugin.dragScale, time: 50 });
     } else {
-      this.dragContext.transform.setPosition(tap.x, tap.y);
+      this.dragTransform.setPosition(tap.x, tap.y);
     }
   }
 
   _tapEnd() {
     this._reset();
     this.isDragging = false;
-    let dropTarget = document.elementFromPoint(this.dragContext.transform.x, this.dragContext.transform.y);
+    let dropTarget = document.elementFromPoint(this.dragTransform.x, this.dragTransform.y);
     let dropEvent = document.createEvent('Event');
-    dropEvent.initEvent('intereactdrop', true, true);
+    dropEvent.initEvent('spurdrop', true, true);
     dropTarget.dispatchEvent(dropEvent);
   }
 
@@ -88,25 +86,25 @@ class DragManager extends EventEmitter {
     let elementBox = dragPlugin.DOMNode.getBoundingClientRect();
     this.initialPosition = { x: elementBox.left, y: elementBox.top };
 
-    let transform = dragPlugin.reactComponent.transform || {
+    let transform = dragPlugin.reactComponent.props.transform || {
       rotation: 0,
       width: elementBox.width,
       height: elementBox.height,
     };
-    this.dragContext.transform.setPosition(elementBox.left, elementBox.top);
-    this.dragContext.transform.setRotation(transform.rotation);
-    this.dragContext.transform.setDimensions(transform.width, transform.height);
-    this.dragContext.transform.setPositionOffset(elementBox.left - x, elementBox.top - y);
-    this.dragContext.setTemplate(dragPlugin.template);
+    this.dragTransform.setPosition(elementBox.left, elementBox.top);
+    this.dragTransform.setRotation(transform.rotation);
+    this.dragTransform.setDimensions(transform.width, transform.height);
+    this.dragTransform.setPositionOffset(elementBox.left - x, elementBox.top - y);
+    this.dragContext.setState({ template: dragPlugin.template });
 
-    this.dragContext.transform.show().then(() => {
-      return this.dragContext.transform.transformTo({ x: x, y: y, scale: scale, time: time });
+    this.dragTransform.show().then(() => {
+      return this.dragTransform.transformTo({ x: x, y: y, scale: scale, time: time });
     });
     dragPlugin.dragStart();
   }
 
   setDropTarget(dropPlugin) {
-    let transform = this.dragContext.transform;
+    let transform = this.dragTransform;
     let x = transform.x + transform.offsetX;
     let y = transform.y + transform.offsetY;
     let dropTransform = dropPlugin.willDrop(this.dragPlugin, x, y);
@@ -123,8 +121,8 @@ class DragManager extends EventEmitter {
 
     transform.setPositionOffset(0, 0);
 
-    this.dragContext.transform.transformTo(dropTransform).then(() => {
-      this.dragContext.transform.hide();
+    this.dragTransform.transformTo(dropTransform).then(() => {
+      this.dragTransform.hide();
       this.dragPlugin.dragEnd();
       this.emit('dragEnd');
       dropPlugin.didDrop(this.dragPlugin, x, y);

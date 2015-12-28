@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { tapEvents, getTap } from 'spur-taps';
 import interactionHandler from 'spur-tap-lock';
 import TINA from 'tina';
-import './Scroller.less';
+import 'styles/Scroller.less';
 
 const SCROLL_THRESHOLD = 8;
 let tweener = new TINA.Timer(1000);

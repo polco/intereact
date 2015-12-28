@@ -1,29 +1,28 @@
 import React from 'react';
-// import ReactDOM from 'react-dom';
-import PluggableComponent from 'components/PluggableComponent';
-import DragPlugin from 'components/DragPlugin';
-import TapPlugin from 'components/TapPlugin';
-import TransformPlugin from 'components/TransformPlugin';
+import ReactDom from 'react-dom';
+import plug from 'plugins/plug';
+import DragPlugin from 'plugins/DragPlugin';
+import TransformPlugin from 'plugins/TransformPlugin';
 import { tapEvents, getTap, getMouseTap } from 'spur-taps';
-import interactionHandler from 'spur-tap-lock';
-import './MoodboardItem.less';
+import tapLock from 'spur-tap-lock';
+import ButtonPlugin from 'spur-button-plugin';
+import 'styles/MoodboardItem.less';
 
 const PINCH_TRESHOLD = 8 * 8;
 
-export class MoodboardItem extends PluggableComponent {
+export class MoodboardItem extends React.Component {
   constructor(props) {
     super(props);
 
     this.dragPlugin = this.addPlugin(new DragPlugin({ scale: 1, time: 1 }));
     this.addPlugin(new TapPlugin());
     this.dragPlugin.setSource('moodboard');
-    this.transform = this.addPlugin(new TransformPlugin());
   }
 
   updateDisplay(props) {
-    this.transform.setPosition(props.item.x, props.item.y);
-    this.transform.setDimensions(props.item.width, props.item.height);
-    this.transform.setOpacity(props.opacity != undefined ? props.opacity : 1);
+    this.props.transform.setPosition(props.item.x, props.item.y);
+    this.props.transform.setDimensions(props.item.width, props.item.height);
+    this.props.transform.setOpacity(props.opacity != undefined ? props.opacity : 1);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -31,13 +30,13 @@ export class MoodboardItem extends PluggableComponent {
   }
 
   scaleToDimension() {
-    let scale = this.transform.scale;
-    let newWidth = this.transform.width * scale;
-    let newHeight = this.transform.height * scale;
-    let x = this.transform.x + (this.transform.width - newWidth) / 2;
-    let y = this.transform.y + (this.transform.height - newHeight) / 2;
+    let scale = this.props.transform.scale;
+    let newWidth = this.props.transform.width * scale;
+    let newHeight = this.props.transform.height * scale;
+    let x = this.props.transform.x + (this.props.transform.width - newWidth) / 2;
+    let y = this.props.transform.y + (this.props.transform.height - newHeight) / 2;
     this.props.updateItemDimensions(this.props.moodboardId, this.props.id, newWidth, newHeight, x, y);
-    this.transform.setScale(1);
+    this.props.transform.setScale(1);
   }
 
   onWheel(e) {
@@ -48,8 +47,8 @@ export class MoodboardItem extends PluggableComponent {
       else distance = -d / 3;              // Firefox;         TODO: do not /3 for OS X
     } else distance = w / 120;
 
-    let scale = Math.max(0.5, this.transform.scale + distance / 20);
-    this.transform.setScale(scale);
+    let scale = Math.max(0.5, this.props.transform.scale + distance / 20);
+    this.props.transform.setScale(scale);
     e.preventDefault();
     e.stopPropagation();
 
@@ -70,7 +69,7 @@ export class MoodboardItem extends PluggableComponent {
   }
 
   onDragStart() {
-    this.transform.setOpacity(0);
+    this.props.transform.setOpacity(0);
   }
 
   // onDragEnd() {
@@ -81,7 +80,7 @@ export class MoodboardItem extends PluggableComponent {
     let deltaX = tap1.x - tap2.x;
     let deltaY = tap1.y - tap2.y;
     this.initialDistance = deltaX * deltaX + deltaY * deltaY;
-    this.initialAngle = this.transform.rotation;
+    this.initialAngle = this.props.transform.rotation;
     this.initialTapAngle = Math.atan2(deltaX, deltaY);
     this.initialCenter = { x: tap1.x + deltaX / 2, y: tap1.y + deltaY / 2 };
   }
@@ -112,7 +111,7 @@ export class MoodboardItem extends PluggableComponent {
     let deltaY = tap1.y - tap2.y;
     let distance = deltaX * deltaX + deltaY * deltaY;
     let angleChange = this.initialTapAngle - Math.atan2(deltaX, deltaY);
-    this.transform.transform(this.transform.x, this.transform.y, distance / this.initialDistance, this.initialAngle + angleChange);
+    this.props.transform.transform(this.props.transform.x, this.props.transform.y, distance / this.initialDistance, this.initialAngle + angleChange);
   }
 
   onDOMTapMove(e) {
@@ -126,7 +125,7 @@ export class MoodboardItem extends PluggableComponent {
       let deltaY = tap1.y - tap2.y;
       let distance = deltaX * deltaX + deltaY * deltaY;
 
-      if (distance < PINCH_TRESHOLD || !interactionHandler.requestHandle(this)) { return; }
+      if (distance < PINCH_TRESHOLD || !tapLock.requestHandle(this)) { return; }
       this.isPinching = true;
     }
 
@@ -165,7 +164,7 @@ export class MoodboardItem extends PluggableComponent {
   }
 
   tapOnRotateIcon(e) {
-    if (!interactionHandler.requestHandle(this)) { return; }
+    if (!tapLock.requestHandle(this)) { return; }
     let tap = getMouseTap(e);
 
     let boundingBox = this.DOMNode.getBoundingClientRect();
@@ -179,8 +178,11 @@ export class MoodboardItem extends PluggableComponent {
     document.body.addEventListener('mouseup', this.boundMouseTapEnd);
   }
 
+
   componentDidMount() {
-    super.componentDidMount();
+    this.DOMNode = ReactDom.findDOMNode(this);
+    this.props.drag.setDragScale(1);
+    this.props.drag.setDragTime(1);
     this.updateDisplay(this.props);
 
     this._boundWheel = this.onWheel.bind(this);
@@ -200,7 +202,7 @@ export class MoodboardItem extends PluggableComponent {
     this.boundTapStart = null;
     this.DOMNode.removeEventListener('mousedown', this.boundRotateTapStart);
     this.boundRotateTapStart = null;
-    super.componentWillUnmount();
+    this.DOMNode = null;
   }
 
   onTap() {
@@ -229,4 +231,4 @@ export class MoodboardItem extends PluggableComponent {
   }
 }
 
-export default MoodboardItem;
+export default plug({ button: ButtonPlugin, transform: TransformPlugin, drag: DragPlugin }, MoodboardItem);

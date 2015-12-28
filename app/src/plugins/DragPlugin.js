@@ -1,11 +1,8 @@
 import { tapEvents, getTap } from 'spur-taps';
-import interactionHandler from 'spur-tap-lock';
+import tapLock from 'spur-tap-lock';
 import dragManager from 'components/dragManager';
 
 const DRAG_THRESHOLD = 8;
-
-function onDragStart() {}
-function onDragEnd() {}
 
 class DragPlugin {
   constructor(options) {
@@ -21,6 +18,14 @@ class DragPlugin {
     }
   }
 
+  setDragScale(source) {
+    this.source = source;
+  }
+
+  setDragTime(source) {
+    this.source = source;
+  }
+
   setSource(source) {
     this.source = source;
   }
@@ -34,23 +39,27 @@ class DragPlugin {
   }
 
   dragStart() {
-    this.reactComponent.onDragStart();
+    if (!this.reactComponent) { return; }
+    if (this.reactComponent.onDragStart) { this.reactComponent.onDragStart(); }
+    if (this.reactComponent.props.onDragStart) { this.reactComponent.props.onDragStart(); }
   }
 
   dragEnd() {
-    this.reactComponent.onDragEnd();
+    if (!this.reactComponent) { return; }
+    if (this.reactComponent.onDragEnd) { this.reactComponent.onDragEnd(); }
+    if (this.reactComponent.props.onDragEnd) { this.reactComponent.props.onDragEnd(); }
   }
 
-  _reset() {
+  reset() {
     document.body.removeEventListener(tapEvents.move, this.tapMoveBound);
     this.tapMoveBound = null;
     document.body.removeEventListener(tapEvents.end, this.tapEndBound);
     this.tapEndBound = null;
   }
 
-  _tapMove(e) {
+  tapMove(e) {
     let tap = getTap(e);
-    if (tap.count > 1) { return this._reset(); }
+    if (tap.count > 1) { return this.reset(); }
 
     let deltaX = this.startTap.x - tap.x;
     let deltaY = this.startTap.y - tap.y;
@@ -58,41 +67,39 @@ class DragPlugin {
       return;
     }
 
-    this._reset();
-    if (interactionHandler.requestHandle(this)) {
+    this.reset();
+    if (tapLock.requestHandle(this)) {
       dragManager.startDrag(this, tap.x, tap.y, this.dragScale, this.transitionTime);
     }
   }
 
-  _tapEnd() {
-    this._reset();
+  tapEnd() {
+    this.reset();
   }
 
-  _tapStart(e) {
+  tapStart(e) {
     let tap = getTap(e);
     if (!this.enable || dragManager.isDragging || tap.count > 1) { return; }
 
     this.startTap = { x: tap.x, y: tap.y };
-    this.tapMoveBound = this._tapMove.bind(this);
+    this.tapMoveBound = this.tapMove.bind(this);
     document.body.addEventListener(tapEvents.move, this.tapMoveBound);
-    this.tapEndBound = this._tapEnd.bind(this);
+    this.tapEndBound = this.tapEnd.bind(this);
     document.body.addEventListener(tapEvents.end, this.tapEndBound);
   }
 
-  componentDidMount(DOMNode, reactComponent) {
+  setAttachedComponent(reactComponent, DOMNode) {
     this.reactComponent = reactComponent;
-    reactComponent.onDragStart = reactComponent.onDragStart || onDragStart;
-    reactComponent.onDragEnd = reactComponent.onDragEnd || onDragEnd;
     this.DOMNode = DOMNode;
-    this.tapStartBound = this._tapStart.bind(this);
+    this.tapStartBound = this.tapStart.bind(this);
     this.DOMNode.addEventListener(tapEvents.start, this.tapStartBound);
   }
 
-  componentWillUnmount() {
+  tearDown() {
     this.DOMNode.removeEventListener(tapEvents.start, this.tapStartBound);
     this.tapStartBound = null;
-    this.DOMNode = null;
-    this._reset();
+    this.reset();
+    this.DOMNode = this.reactComponent = null;
   }
 }
 
