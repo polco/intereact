@@ -1,7 +1,7 @@
 var domAPI = require('./dom-api.js');
-var dispatchEvent = domAPI.dispatchEventOn;
+var dispatchEvent = domAPI.dispatchEvent;
 var dispatchEventOn = domAPI.dispatchEventOn;
-var dispatchEventFrom = domAPI.dispatchEventFrom;
+var hasListener = domAPI.hasListener;
 
 var pointerEventTypes = require('./core.js').pointerEventTypes;
 var pointers = require('./current.js').pointers;
@@ -10,45 +10,60 @@ var pointerPool = require('./pointer-pool.js');
 var getPointerObject = pointerPool.getPointerObject;
 var releasePointerObject = pointerPool.releasePointerObject;
 
+var getPath = require('./utils.js').getPath;
+
 var pointersInfo = {};
+var primaryId = null;
 
-function getPath(element) {
-  var path = [];
-  while (element !== null) {
-    path.push(element);
-    element = element.parentElement;
-  }
-  return path;
-}
+function start(e, primaryPointerId) {
+  primaryId = primaryPointerId;
+  var hasOverListener = hasListener(pointerEventTypes.over);
+  var hasEnterListener = hasListener(pointerEventTypes.enter);
 
-function start(e) {
   var touches = e.changedTouches;
+  var pointerObject = getPointerObject();
   for (var i = 0; i < touches.length; i += 1) {
     var touch = touches[i];
-    var pointerObject = getPointerObject();
-    pointerObject.event.initFromTouch(e, touch, pointerEventTypes.enter);
-    dispatchEvent(pointerObject.event);
-    releasePointerObject(pointerObject);
+    var isPrimary = touch.identifier === primaryId;
+
+    if (hasOverListener) {
+      pointerObject.event._initFromTouch(e, touch, pointerEventTypes.over, isPrimary);
+      dispatchEvent(pointerObject.event);
+    }
 
     var event = pointerObject.event;
-    pointersInfo[touch.identifier] = {
+    var pointerInfo = {
       path: getPath(event.target),
       timeStamp: e.timeStamp,
       target: event.target,
       x: event.x,
       y: event.y
     };
+    pointersInfo[touch.identifier] = pointerInfo;
+
+    if (hasEnterListener) {
+      pointerObject.event._initFromTouch(e, touch, pointerEventTypes.enter, isPrimary);
+      for (var j = 0; j < pointerInfo.path.length; j += 1) {
+        var element = pointerInfo.path[j];
+        pointerObject.event.target = element;
+        dispatchEventOn(pointerObject.event);
+      }
+    }
   }
+  releasePointerObject(pointerObject);
 }
 
-function updateTarget(pointerInfo, e, touch) {
+function updateTarget(pointerInfo, e, touch, isPrimary) {
   var target = document.elementFromPoint(pointerInfo.x, pointerInfo.y);
   if (!target || target === pointerInfo.target) { return; }
 
   var pointerObject = getPointerObject();
-  pointerObject.event.initFromTouch(e, touch, pointerEventTypes.out);
-  pointerObject.event.target = pointerInfo.target;
-  dispatchEvent(pointerObject.event);
+
+  if (hasListener(pointerEventTypes.out)) {
+    pointerObject.event._initFromTouch(e, touch, pointerEventTypes.out, isPrimary);
+    pointerObject.event.target = pointerInfo.target;
+    dispatchEvent(pointerObject.event);
+  }
 
   var newPath = getPath(target);
   var oldPath = pointerInfo.path;
@@ -61,18 +76,28 @@ function updateTarget(pointerInfo, e, touch) {
     oldPathIndex -= 1;
   }
 
-  pointerObject.event.initFromTouch(e, touch, pointerEventTypes.leave);
-  for (var i = 0; i < oldPathIndex; i += 1) {
-    var element = oldPath[i];
-    pointerObject.event.target = element;
-    dispatchEventOn(pointerObject.event)
+  if (hasListener(pointerEventTypes.leave)) {
+    pointerObject.event._initFromTouch(e, touch, pointerEventTypes.leave, isPrimary);
+    for (var i = 0; i < oldPathIndex; i += 1) {
+      var element = oldPath[i];
+      pointerObject.event.target = element;
+      dispatchEventOn(pointerObject.event)
+    }
   }
 
-  pointerObject.event.initFromTouch(e, touch, pointerEventTypes.enter);
-  for (var i = 0; i < newPathIndex; i += 1) {
-    var element = newPath[i];
-    pointerObject.event.target = element;
-    dispatchEventOn(pointerObject.event)
+  if (hasListener(pointerEventTypes.over)) {
+    pointerObject.event._initFromTouch(e, touch, pointerEventTypes.over, isPrimary);
+    pointerObject.event.target = target;
+    dispatchEvent(pointerObject.event);
+  }
+
+  if (hasListener(pointerEventTypes.enter)) {
+    pointerObject.event._initFromTouch(e, touch, pointerEventTypes.enter, isPrimary);
+    for (var i = 0; i < newPathIndex; i += 1) {
+      var element = newPath[i];
+      pointerObject.event.target = element;
+      dispatchEventOn(pointerObject.event)
+    }
   }
 
   releasePointerObject(pointerObject);
@@ -81,6 +106,10 @@ function updateTarget(pointerInfo, e, touch) {
 }
 
 function move(e) {
+  if (!hasListener(pointerEventTypes.enter) &&
+    !hasListener(pointerEventTypes.leave) &&
+    !hasListener(pointerEventTypes.over) &&
+    !hasListener(pointerEventTypes.out)) { return; }
   var touches = e.changedTouches;
   for (var i = 0; i < touches.length; i += 1) {
     var touch = touches[i];
@@ -89,28 +118,37 @@ function move(e) {
     if (Math.abs(touch.clientX - pointerInfo.x) > 15 || Math.abs(touch.clientY - pointerInfo.y) > 15 || e.timeStamp - pointerInfo.timeStamp > 50) {
       pointerInfo.x = touch.clientX;
       pointerInfo.y = touch.clientY;
-      updateTarget(pointerInfo, e, touch);
+      updateTarget(pointerInfo, e, touch, touch.identifier === primaryId);
     }
     pointerInfo.timeStamp = e.timeStamp;
   }
 }
 
-function end(e) {
+function end(e, primaryPointerId) {
+  primaryId = primaryPointerId;
+
+  var hasLeaveListener = hasListener(pointerEventTypes.leave);
+  var hasOutListener = hasListener(pointerEventTypes.out);
   var touches = e.changedTouches;
   var pointerObject = getPointerObject();
   for (var i = 0; i < touches.length; i += 1) {
     var touch = touches[i];
     var pointerInfo = pointersInfo[touch.identifier];
+    var isPrimary = touch.identifier === primaryId;
 
-    pointerObject.event.initFromTouch(e, touch, pointerEventTypes.out);
-    pointerObject.event.target = pointerInfo.target;
-    dispatchEvent(pointerObject.event);
+    if (hasOutListener) {
+      pointerObject.event._initFromTouch(e, touch, pointerEventTypes.out, isPrimary);
+      pointerObject.event.target = pointerInfo.target;
+      dispatchEvent(pointerObject.event);
+    }
 
-    pointerObject.event.initFromTouch(e, touch, pointerEventTypes.leave);
-    for (var i = 0; i < pointerInfo.path.length; i += 1) {
-      var element = pointerInfo.path[i];
-      pointerObject.event.target = element;
-      dispatchEventOn(pointerObject.event);
+    if (hasLeaveListener) {
+      pointerObject.event._initFromTouch(e, touch, pointerEventTypes.leave, isPrimary);
+      for (var j = 0; j < pointerInfo.path.length; j += 1) {
+        var element = pointerInfo.path[j];
+        pointerObject.event.target = element;
+        dispatchEventOn(pointerObject.event);
+      }
     }
 
     delete pointersInfo[touch.identifier];

@@ -19,6 +19,37 @@ body {
   letter-spacing: 0.1em;
 }
 
+.pointer-test {
+  height: 100%;
+
+  .hover {
+    border: 1px solid black;
+  }
+
+  .first-level {
+    position: relative;
+    height: 90%;
+    background-color: #fcf;
+
+    .second-level {
+      position: absolute;
+      height: 40%;
+      width: 90%;
+      left: 5%;
+
+      &.a {
+        background-color: #ccc;
+        top: 5%;
+      }
+
+      &.b {
+        background-color: #bbb;
+        top: 55%;
+      }
+    }
+  }
+}
+
 .main {
   display: flex;
   height: 100%;

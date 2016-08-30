@@ -6,7 +6,6 @@ var domAPI = require('./dom-api.js');
 var dispatchEvent = domAPI.dispatchEvent;
 
 var hover = require('./hover.js');
-var PointerEvent = require('./pointer-event.js');
 
 var pointerPool = require('./pointer-pool.js');
 var getPointerObject = pointerPool.getPointerObject;
@@ -17,23 +16,14 @@ var addPointer = currentPointers.addPointer;
 var updatePointer = currentPointers.updatePointer;
 var removePointer = currentPointers.removePointer;
 
-PointerEvent.prototype.initFromTouch = function (event, touch, type) {
-  this.pointerId = touch.identifier;
-  this.pointerType = touchType;
-  this.x = touch.clientX;
-  this.y = touch.clientY;
-  this.target = touch.target;
-  this.originalEvent = event;
-  this.type = type;
-  return this;
-}
-
-var hoverMode = false;
+var primaryId = null;
 
 window.addEventListener('touchstart', function (e) {
-  e.preventDefault();
-  var hasListener = domAPI.hasListener(pointerEventTypes.down);
+  primaryId = currentPointers.touchPrimaryId = e.touches[0].identifier;
 
+  hover.start(e, primaryId);
+
+  var hasListener = domAPI.hasListener(pointerEventTypes.down);
   var touches = e.changedTouches;
   var pointerObject = getPointerObject();
   var pointerEvent = pointerObject.event;
@@ -42,23 +32,17 @@ window.addEventListener('touchstart', function (e) {
     addPointer(touch.identifier, touchType, touch.clientX, touch.clientY, touch.target);
 
     if (hasListener) {
-      pointerEvent.initFromTouch(e, touch, pointerEventTypes.down);
+      pointerEvent._initFromTouch(e, touch, pointerEventTypes.down, touch.identifier === primaryId);
       dispatchEvent(pointerEvent);
     }
   }
   releasePointerObject(pointerObject);
-
-  if (domAPI.hasListener(pointerEventTypes.enter) || domAPI.hasListener(pointerEventTypes.leave)) {
-    hover.start(e);
-    hoverMode = true;
-  } else {
-    hoverMode = false;
-  }
 }, true);
 
 window.addEventListener('touchmove', function (e) {
-  var hasListener = domAPI.hasListener(pointerEventTypes.move);
+  hover.move(e);
 
+  var hasListener = domAPI.hasListener(pointerEventTypes.move);
   var touches = e.changedTouches;
   var pointerObject = getPointerObject();
   var pointerEvent = pointerObject.event;
@@ -67,20 +51,18 @@ window.addEventListener('touchmove', function (e) {
     updatePointer(touch.identifier, touch.clientX, touch.clientY, touch.target);
 
     if (hasListener) {
-      pointerEvent.initFromTouch(e, touch, pointerEventTypes.move);
+      pointerEvent._initFromTouch(e, touch, pointerEventTypes.move, touch.identifier === primaryId);
       dispatchEvent(pointerEvent);
     }
   }
   releasePointerObject(pointerObject);
-
-  if (hoverMode) {
-    hover.move(e);
-  }
 }, true);
 
 window.addEventListener('touchend', function (e) {
-  var hasListener = domAPI.hasListener(pointerEventTypes.up);
+  primaryId = currentPointers.touchPrimaryId = e.touches.length && e.touches[0].identifier;
+  hover.end(e, primaryId);
 
+  var hasListener = domAPI.hasListener(pointerEventTypes.up);
   var touches = e.changedTouches;
   var pointerObject = getPointerObject();
   var pointerEvent = pointerObject.event;
@@ -89,20 +71,18 @@ window.addEventListener('touchend', function (e) {
     removePointer(touch.identifier);
 
     if (hasListener) {
-      pointerEvent.initFromTouch(e, touch, pointerEventTypes.up);
+      pointerEvent._initFromTouch(e, touch, pointerEventTypes.up, touch.identifier === primaryId);
       dispatchEvent(pointerEvent);
     }
   }
   releasePointerObject(pointerObject);
-
-  if (hoverMode) {
-    hover.end(e);
-  }
 }, true);
 
 window.addEventListener('touchcancel', function (e) {
-  var hasListener = domAPI.hasListener(pointerEventTypes.cancel);
+  primaryId = currentPointers.touchPrimaryId = e.touches.length && e.touches[0].identifier;
+  hover.end(e, primaryId);
 
+  var hasListener = domAPI.hasListener(pointerEventTypes.cancel);
   var touches = e.changedTouches;
   var pointerObject = getPointerObject();
   var pointerEvent = pointerObject.event;
@@ -111,13 +91,9 @@ window.addEventListener('touchcancel', function (e) {
     removePointer(touch.identifier);
 
     if (hasListener) {
-      pointerEvent.initFromTouch(e, touch, pointerEventTypes.cancel);
+      pointerEvent._initFromTouch(e, touch, pointerEventTypes.cancel, touch.identifier === primaryId);
       dispatchEvent(pointerEvent);
     }
   }
   releasePointerObject(pointerObject);
-
-  if (hoverMode) {
-    hover.end(e);
-  }
 }, true);
